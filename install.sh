@@ -3,6 +3,7 @@
 
 # Hostname of the installed machine.
 HOSTNAME='arch'
+TIMEZONE='America/Lima'
 
 # Set keyboard layout
 KEYMAP='us'
