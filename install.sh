@@ -18,7 +18,7 @@ timedatectl set-ntp true
 # This will create and format partitions as:
 # /dev/sda1 - 512 Mib as boot
 # /dev/sda2 - 2 Gib as swap
-# /dev/sda3 - rest of space /
+# /dev/sda3 - rest of space as /
 sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
   o # clear the in memory partition table
   n # new partition
