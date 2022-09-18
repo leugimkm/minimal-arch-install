@@ -1,21 +1,27 @@
 #! /bin/bash
-# CONFIGURATION
 
-# Hostname of the installed machine.
+#################
+# CONFIGURATION #
+#################
+
 HOSTNAME='arch'
 TIMEZONE='America/Lima'
-
-# Set keyboard layout
+ROOT_PASSWORD='root'
+USER_NAME='bot'
+USER_PASSWORD='bot'
 KEYMAP='us'
-# KEYMAP='es'
+
+###############################################################################
 
 echo "Simple Arch Installer"
-# Set the console keyboard layout
+# --------------------------------------------- Set the console keyboard layout
 loadkeys "$KEYMAP"
 
-# Set up time
+# ----------------------------------------------------- Update the system clock
 timedatectl set-ntp true
 
+# ---------------------------------------------------------- Parition the disks
+#
 # This will create and format partitions as:
 # /dev/sda1 - 512 Mib as boot
 # /dev/sda2 - 2 Gib as swap
@@ -44,19 +50,50 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
   q # and we're done
 EOF
 
-# Format the partitions
+# ------------------------------------------------------- Format the partitions
 mkfs.fat -F32 /dev/sda1
 mkswap /dev/sda2
 swapon /dev/sda2
 mkfs.ext4 /dev/sda3
 
-# Mount the partitions
+# ------------------------------------------------------ Mount the file systems
 mount /dev/sda3 /mnt
 mkdir /mnt/efi
 mount /dev/sda1 /mnt/efi
 
-# Install Arch Linux
-pacstrap /mnt base base-devel linux linux-firmware
+# ----------------------- Install essential packages, linux kernel and firmware
+pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager
 
-# Generate fstab
+# ------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
+
+# --------------------------------------------- Change root into the new system
+arch-chroot /mnt
+
+# ----------------------------------------------------------- Set the time zone
+ln -sf /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
+hwclock --systohc
+
+# ---------------------------------------------------------------- Localization
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+echo "LANG=en_US.UTF-8" >> /etc/locale.conf
+locale-gen
+echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf
+
+# ------------------------------------------------------- Network configuration
+echo "$HOSTNAME" > /etc/hostname
+
+# --------------------------------------------------------------- Root password
+passwd
+
+# ----------------------------------------------------------------- Boot loader
+grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck
+grub-mkconfig -o /boot/grub/grub.cfg
+
+# ------------------------------------------------------------- Enable services
+systemctl enable NetworkManager
+
+# ------------------------------------------------------------------ Unmounting
+umount -l /mnt
+
+echo "Install has completed. Please reboot!"
