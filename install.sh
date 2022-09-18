@@ -4,6 +4,7 @@
 # CONFIGURATION #
 #################
 
+# Configure these variables
 HOSTNAME='arch'
 TIMEZONE='America/Lima'
 ROOT_PASSWORD='root'
