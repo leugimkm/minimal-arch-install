@@ -85,7 +85,14 @@ echo "$HOSTNAME" > /etc/hostname
 
 # --------------------------------------------------------------- Root password
 echo "Setting root password"
-passwd
+echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
+
+# -------------------------------------------------------------- Creating users
+echo "Creating new user"
+useradd -m $USER_NAME
+useradd -aG wheel,audio,video,optical,storage $USER_NAME
+echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_PASSWORD
+echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
 # ----------------------------------------------------------------- Boot loader
 grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck
