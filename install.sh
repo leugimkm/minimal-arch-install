@@ -84,6 +84,7 @@ echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf
 echo "$HOSTNAME" > /etc/hostname
 
 # --------------------------------------------------------------- Root password
+echo "Setting root password"
 passwd
 
 # ----------------------------------------------------------------- Boot loader
