@@ -28,20 +28,16 @@ timedatectl set-ntp true
 # /dev/sda2 - 2 Gib as swap
 # /dev/sda3 - rest of space as /
 sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
-  o # clear the in memory partition table
   g # new GPT disklabel
   n # new partition
-  p # primary partition
   1 # partition number 1
     # default - start at beginning of disk 
   +550M # 550 MB boot parttion
   n # new partition
-  p # primary partition
   2 # partion number 2
     # default, start immediately after preceding partition
   +2G # 2 GB swap parttion
   n # new partition
-  p # primary partition
   3 # partion number 3
     # default, start immediately after preceding partition
     # default, extend partition to end of disk
