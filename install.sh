@@ -65,7 +65,7 @@ mount /dev/sda1 /mnt/efi
 # ----------------------- Install essential packages, linux kernel and firmwarGrub
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 pacman -Sy
-pacstrap /mnt base linux linux-firmware
+pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo curl git vim
 
 # ------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -91,10 +91,6 @@ echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /etc/hosts
 echo "Setting root password..."
 echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
 
-echo "Installing Sudo..."
-pacman -S sudo
-echo "Sudo done..."
-
 echo "Creating new user..."
 useradd -m -G wheel -s /bin/bash $USER_NAME
 useradd -aG audio,video,optical,storage $USER_NAME
@@ -102,12 +98,10 @@ echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_PASSWORD
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
 echo "Installing bootloader..."
-pacman -S grub efibootmgr
 grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck
 grub-mkconfig -o /boot/grub/grub.cfg
 
 echo "Enabling NetworkManager..."
-pacman -S networkmanager
 systemctl enable NetworkManager
 EOF
 
