@@ -71,6 +71,7 @@ pacstrap /mnt base linux linux-firmware
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # --------------------------------------------- Change root into the new system
+echo "Configuring new system..."
 arch-chroot /mnt /bin/bash <<EOF
 
 echo "Setting system clock..."
@@ -92,10 +93,11 @@ echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
 
 echo "Installing Sudo..."
 pacman -S sudo
+echo "Sudo done..."
 
 echo "Creating new user..."
-useradd -m $USER_NAME
-useradd -aG wheel,audio,video,optical,storage $USER_NAME
+useradd -m -G wheel -s /bin/bash $USER_NAME
+useradd -aG audio,video,optical,storage $USER_NAME
 echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_PASSWORD
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
