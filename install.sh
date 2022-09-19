@@ -1,8 +1,10 @@
 #! /bin/bash
+#
+# Minimal Arch Linux Installation
 
-#################
-# CONFIGURATION #
-#################
+################################################################################
+#                                CONFIGURATION                                 #
+################################################################################
 
 # Configure these variables
 HOSTNAME='arch'
@@ -11,17 +13,18 @@ ROOT_PASSWORD='root'
 USER_NAME='bot'
 USER_PASSWORD='bot'
 KEYMAP='us'
+# End of configuration
 
-###############################################################################
+################################################################################
 
-echo "Simple Arch Installer"
-# --------------------------------------------- Set the console keyboard layout
+echo "Starting 'Simple Arch Installer'..."
+# ---------------------------------------------- Set the console keyboard layout
 loadkeys "$KEYMAP"
 
-# ----------------------------------------------------- Update the system clock
+# ------------------------------------------------------ Update the system clock
 timedatectl set-ntp true
 
-# ---------------------------------------------------------- Parition the disks
+# ----------------------------------------------------------- Parition the disks
 #
 # This will create and format partitions as:
 # /dev/sda1 - 512 Mib as boot
@@ -51,26 +54,26 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
   q # and we're done
 EOF
 
-# ------------------------------------------------------- Format the partitions
+# -------------------------------------------------------- Format the partitions
 mkfs.fat -F32 /dev/sda1
 mkswap /dev/sda2
 swapon /dev/sda2
 mkfs.ext4 /dev/sda3
 
-# ------------------------------------------------------ Mount the file systems
+# ------------------------------------------------------- Mount the file systems
 mount /dev/sda3 /mnt
 mkdir /mnt/efi
 mount /dev/sda1 /mnt/efi
 
-# ----------------------- Install essential packages, linux kernel and firmwarGrub
+# ------------------------ Install linux kernel, firmware and essential packages
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 pacman -Sy
 pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo curl git vim
 
-# ------------------------------------------------------- Generate a fstab file
+# -------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
 
-# --------------------------------------------- Change root into the new system
+# ------------------------------------------------------- Configuring new system
 echo "Configuring new system..."
 arch-chroot /mnt /bin/bash <<EOF
 
