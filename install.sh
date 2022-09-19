@@ -62,7 +62,9 @@ mount /dev/sda3 /mnt
 mkdir /mnt/efi
 mount /dev/sda1 /mnt/efi
 
-# ----------------------- Install essential packages, linux kernel and firmware
+# ----------------------- Install essential packages, linux kernel and firmwarGrub
+echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
+pacman -Sy
 pacstrap /mnt base linux linux-firmware
 
 # ------------------------------------------------------- Generate a fstab file
@@ -89,7 +91,6 @@ echo "Setting root password..."
 echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
 
 echo "Installing Sudo..."
-pacman -Sy
 pacman -S sudo
 
 echo "Creating new user..."
