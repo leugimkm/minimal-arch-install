@@ -69,42 +69,35 @@ pacstrap /mnt base linux linux-firmware
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # --------------------------------------------- Change root into the new system
-arch-chroot /mnt
+arch-chroot /mnt /bin/bash <<EOF
 
-# ----------------------------------------------------------- Set the time zone
-ln -sf /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
+ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 hwclock --systohc
 
-# ---------------------------------------------------------------- Localization
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "LANG=en_US.UTF-8" >> /etc/locale.conf
 locale-gen
-echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf
+echo KEYMAP=$KEYMAP > /etc/vconsole.conf
 
-# ------------------------------------------------------- Network configuration
-echo "$HOSTNAME" > /etc/hostname
+echo $HOSTNAME > /etc/hostname
 
-# --------------------------------------------------------------- Root password
 echo "Setting root password"
 echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
 
-# -------------------------------------------------------------- Creating users
 echo "Creating new user"
 useradd -m $USER_NAME
 useradd -aG wheel,audio,video,optical,storage $USER_NAME
 echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_PASSWORD
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
-# ----------------------------------------------------------------- Boot loader
 pacman -S grub efibootmgr
 grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck
 grub-mkconfig -o /boot/grub/grub.cfg
 
-# ------------------------------------------------------------- Enable services
 pacman -S networkmanager
 systemctl enable NetworkManager
+EOF
 
-# ------------------------------------------------------------------ Unmounting
 umount -l /mnt
 
 echo "Install has completed. Please reboot!"
