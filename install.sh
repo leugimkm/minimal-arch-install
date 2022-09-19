@@ -63,7 +63,7 @@ mkdir /mnt/efi
 mount /dev/sda1 /mnt/efi
 
 # ----------------------- Install essential packages, linux kernel and firmware
-pacstrap /mnt base linux linux-firmware grub efibootmgr networkmanager
+pacstrap /mnt base linux linux-firmware
 
 # ------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -96,10 +96,12 @@ echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_PASSWORD
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
 # ----------------------------------------------------------------- Boot loader
+pacman -S grub efibootmgr
 grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # ------------------------------------------------------------- Enable services
+pacman -S networkmanager
 systemctl enable NetworkManager
 
 # ------------------------------------------------------------------ Unmounting
