@@ -63,7 +63,7 @@ mkdir /mnt/efi
 mount /dev/sda1 /mnt/efi
 
 # ----------------------- Install essential packages, linux kernel and firmware
-pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager
+pacstrap /mnt base linux linux-firmware grub efibootmgr networkmanager
 
 # ------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
