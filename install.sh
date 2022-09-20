@@ -1,11 +1,14 @@
 #! /bin/bash
 #
 # Minimal Arch Linux Installation
+#
+# Repository:
+# https://github.com/leugimkm/minimal-arch-install
 
 ################################################################################
 #                                CONFIGURATION                                 #
 ################################################################################
-
+#
 # Configure these variables before running the script.
 readonly HOSTNAME='arch'
 readonly TIMEZONE='America/Lima'
@@ -13,7 +16,6 @@ readonly KEYMAP='us'
 readonly ROOT_PASSWORD='root'
 readonly USER_NAME='bot'
 readonly USER_PASSWORD='bot'
-# End of configuration
 
 ################################################################################
 
@@ -35,35 +37,52 @@ ascii_header() {
   echo "| |\/| | | '_ \| | '_ \` _ \ / _\` | |   / /\ \ | '__/ __| '_ \    | | | '_ \/ __| __/ _\` | | |"
   echo "| |  | | | | | | | | | | | | (_| | |  / ____ \| | | (__| | | |  _| |_| | | \__ \ || (_| | | |"
   echo "|_|  |_|_|_| |_|_|_| |_| |_|\__,_|_| /_/    \_\_|  \___|_| |_| |_____|_| |_|___/\__\__,_|_|_|"
+  echo "============================================================================================="
   echo
 }
 
 info() {
-  local color
-  local msg
-  color="$1"
-  msg="$2"
-  printf -- "${WHITE}-%.0s" $(seq 0 $(($COLS - ${#msg})))
-  echo "${color}$msg"
+  local msg="$1"
+  printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - ${#msg})))
+  echo "$GREEN $msg"
 }
 
 function setting {
-  local color
-  local text
-  local value
+  local text="$1"
+  local value="$2"
   local output
-  color="$1"
-  text="$2"
-  value="$3"
-  output="${RESET}${color} Setting ${CYAN}$text${color} to ${YELLOW}$value${color}...${RESET}"
-  printf -- "${WHITE}.%.0s" $(seq 0 $(($COLS - (${#text} + ${#value} + 16))))
-  echo $output
+  output="'$text' will be set to ${YELLOW}$value${RESET}"
+  printf -- "${WHITE}.%.0s" $(seq 0 $(($COLS - (${#text} + ${#value} + 18))))
+  echo " $output"
 }
 
-################################################################################
-
 ascii_header
-info $GREEN " Starting 'Minimal Arch Installer'..."
+info "Starting 'Minimal Arch Installer'..."
+
+################################################################################
+#                               Showing settings                               #
+################################################################################
+# You can delete or comment thes lines to not show settings
+setting "hostname" $HOSTNAME
+setting "time zone" $TIMEZONE
+setting "keymap" $KEYMAP
+setting "root password" $ROOT_PASSWORD
+setting "user name" $USER_NAME
+setting "user password" $USER_PASSWORD
+
+################################################################################
+#                             Confirm installation                             #
+################################################################################
+#
+# You can delete or comment these lines to skip confimation
+read -p 'Continue? [Y/n]: ' ok
+if ! [ $ok = 'y' ] && ! [ $ok == 'Y' ]
+then
+  info "Edit the script to continue"
+  exit
+fi
+
+################################################################################
 
 # ---------------------------------------------- Set the console keyboard layout
 loadkeys "$KEYMAP"
@@ -113,6 +132,7 @@ mkdir /mnt/efi
 mount /dev/sda1 /mnt/efi
 
 # ------------------------ Install linux kernel, firmware and essential packages
+info "Installing"
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 pacman -Sy
 pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo curl git vim
@@ -121,40 +141,40 @@ pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanage
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # ------------------------------------------------------- Configuring new system
-echo "Configuring new system..."
+info "Configuring new system"
 arch-chroot /mnt /bin/bash <<EOF
 
-echo "Setting system clock..."
+info "Setting system clock"
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 hwclock --systohc
 
-echo "Setting locale..."
+info "Setting locale"
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "LANG=en_US.UTF-8" >> /etc/locale.conf
 locale-gen
 echo KEYMAP=$KEYMAP > /etc/vconsole.conf
 
-echo "Setting hostname..."
+info "Setting hostname"
 echo $HOSTNAME > /etc/hostname
 echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /etc/hosts
 
-echo "Setting root password..."
+info "Setting root password"
 echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
 
-echo "Creating new user..."
+info "Creating new user"
 useradd -m -G wheel -s /bin/bash $USER_NAME
 useradd -aG audio,video,optical,storage $USER_NAME
 echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_PASSWORD
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
-echo "Installing bootloader..."
+info "Installing bootloader"
 grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck
 grub-mkconfig -o /boot/grub/grub.cfg
 
-echo "Enabling NetworkManager..."
+info "Enabling NetworkManager"
 systemctl enable NetworkManager
 EOF
 
 umount -l /mnt
 
-info $GREEN " Installation has completed. Please reboot!"
+info "Installation has completed. Please reboot!"
