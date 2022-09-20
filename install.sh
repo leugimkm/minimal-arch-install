@@ -17,6 +17,16 @@ readonly ROOT_PASSWORD='root'
 readonly USER_NAME='bot'
 readonly USER_PASSWORD='bot'
 
+# By default +2G
+readonly SWAP_SIZE="2"
+# By default the script shows the variables' value and asks for confirmation
+# during the installation. Comment/uncomment to change the behaviour.
+#
+# readonly SHOW=false
+readonly SHOW=true
+# readnly ASK=false
+readonly ASK=true
+
 ################################################################################
 
 BLACK=$(tput setaf 0)
@@ -47,7 +57,7 @@ info() {
   echo "$GREEN $msg"
 }
 
-function setting {
+setting() {
   local text="$1"
   local value="$2"
   local output
@@ -56,33 +66,33 @@ function setting {
   echo " $output"
 }
 
+show_settings() {
+    setting "hostname" $HOSTNAME
+    setting "time zone" $TIMEZONE
+    setting "user name" $USER_NAME
+}
+
+ask() {
+  read -p 'Continue? [Y/n]: ' ok
+  if ! [ $ok = 'y' ] && ! [ $ok == 'Y' ]
+  then
+    info "Edit the script to continue"
+    exit
+  fi
+}
+
 ascii_header
 info "Starting 'Minimal Arch Installer'..."
 
 ################################################################################
-#                               Showing settings                               #
-################################################################################
-# You can delete or comment thes lines to not show settings
-setting "hostname" $HOSTNAME
-setting "time zone" $TIMEZONE
-setting "keymap" $KEYMAP
-setting "root password" $ROOT_PASSWORD
-setting "user name" $USER_NAME
-setting "user password" $USER_PASSWORD
-
-################################################################################
-#                             Confirm installation                             #
-################################################################################
-#
-# You can delete or comment these lines to skip confimation
-read -p 'Continue? [Y/n]: ' ok
-if ! [ $ok = 'y' ] && ! [ $ok == 'Y' ]
+if [ $ASK = true ]
 then
-  info "Edit the script to continue"
-  exit
+  ask
 fi
-
-################################################################################
+if [ $SHOW = true ]
+then
+    show_settings
+fi
 
 # ---------------------------------------------- Set the console keyboard layout
 loadkeys "$KEYMAP"
@@ -135,7 +145,7 @@ mount /dev/sda1 /mnt/efi
 info "Installing"
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 pacman -Sy
-pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo curl git vim
+pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo git vim
 
 # -------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
