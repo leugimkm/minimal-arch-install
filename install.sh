@@ -115,7 +115,7 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
   n # new partition
   2 # partion number 2
     # default, start immediately after preceding partition
-  +2G # 2 GB swap parttion
+  +"${SWAP_SIZE}"G # 2 GB swap parttion by default
   n # new partition
   3 # partion number 3
     # default, start immediately after preceding partition
