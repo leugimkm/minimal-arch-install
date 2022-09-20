@@ -6,18 +6,65 @@
 #                                CONFIGURATION                                 #
 ################################################################################
 
-# Configure these variables
-HOSTNAME='arch'
-TIMEZONE='America/Lima'
-ROOT_PASSWORD='root'
-USER_NAME='bot'
-USER_PASSWORD='bot'
-KEYMAP='us'
+# Configure these variables before running the script.
+readonly HOSTNAME='arch'
+readonly TIMEZONE='America/Lima'
+readonly KEYMAP='us'
+readonly ROOT_PASSWORD='root'
+readonly USER_NAME='bot'
+readonly USER_PASSWORD='bot'
 # End of configuration
 
 ################################################################################
 
-echo "Starting 'Simple Arch Installer'..."
+BLACK=$(tput setaf 0)
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
+WHITE=$(tput setaf 7)
+RESET=$'\e[0m'
+COLS=$(tput cols)
+
+ascii_header() {
+  echo " __  __ _       _                 _                     _       _____           _        _ _ "
+  echo "|  \/  (_)     (_)               | |     /\            | |     |_   _|         | |      | | |"
+  echo "| \  / |_ _ __  _ _ __ ___   __ _| |    /  \   _ __ ___| |__     | |  _ __  ___| |_ __ _| | |"
+  echo "| |\/| | | '_ \| | '_ \` _ \ / _\` | |   / /\ \ | '__/ __| '_ \    | | | '_ \/ __| __/ _\` | | |"
+  echo "| |  | | | | | | | | | | | | (_| | |  / ____ \| | | (__| | | |  _| |_| | | \__ \ || (_| | | |"
+  echo "|_|  |_|_|_| |_|_|_| |_| |_|\__,_|_| /_/    \_\_|  \___|_| |_| |_____|_| |_|___/\__\__,_|_|_|"
+  echo
+}
+
+info() {
+  local color
+  local msg
+  color="$1"
+  msg="$2"
+  printf -- "${WHITE}-%.0s" $(seq 0 $(($COLS - ${#msg})))
+  echo "${color}$msg"
+}
+
+function setting {
+  local color
+  local text
+  local value
+  local output
+  color="$1"
+  text="$2"
+  value="$3"
+  output="${RESET}${color} Setting ${CYAN}$text${color} to ${YELLOW}$value${color}...${RESET}"
+  printf -- "${WHITE}.%.0s" $(seq 0 $(($COLS - (${#text} + ${#value} + 16))))
+  echo $output
+}
+
+################################################################################
+
+ascii_header
+info $GREEN " Starting 'Minimal Arch Installer'..."
+
 # ---------------------------------------------- Set the console keyboard layout
 loadkeys "$KEYMAP"
 
@@ -110,4 +157,4 @@ EOF
 
 umount -l /mnt
 
-echo "Install has completed. Please reboot!"
+info $GREEN " Installation has completed. Please reboot!"
