@@ -74,7 +74,6 @@ to this (you can delete the comment):
   +8G # 8 GB swap partition
 ```
 
-
 ---
 
 For more technical details go to the official site of
