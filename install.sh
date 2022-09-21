@@ -92,6 +92,7 @@ ascii_header
 info "Starting 'Minimal Arch Installer'..."
 
 ################################################################################
+
 if [ $SHOW = true ]
 then
     show_settings
