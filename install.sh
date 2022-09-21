@@ -52,19 +52,22 @@ ascii_header() {
   echo
 }
 
+get_len() {
+  local result=$(echo -e "$1" | sed "s/$(echo -e "\e")[^m]*m//g")
+  echo "${#result}"
+}
+
 info() {
-  local msg="$1"
-  printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - (${#msg} + 6))))
-  echo "$GREEN $msg$RESET"
+  printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - ${#1})))
+  echo "${GREEN} ${1}${RESET}"
 }
 
 setting() {
-  local text="$1"
-  local value="$2"
-  local output
-  output="'$text' will be set to ${YELLOW}$value${RESET}"
-  printf -- "${WHITE}.%.0s" $(seq 0 $(($COLS - (${#text} + ${#value} + 24))))
-  echo " $output$RESET"
+  local text="'$1' will be set to "
+  local value="${YELLOW}${2}${RESET}"
+  local len=$(get_len $value)
+  printf -- "${WHITE}.%.0s" $(seq 0 $(($COLS - (${#text} + ${len}))))
+  echo " ${text}${value}${RESET}"
 }
 
 show_settings() {
