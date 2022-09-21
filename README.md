@@ -28,7 +28,7 @@ And finally, run the following command (see [Configure](#configure) before):
 
 ## Configure
 
-By default the script has the following configuration:
+By default the script has the following configuration (also +2G for swap partition):
 ```bash
 readonly HOSTNAME='arch'
 readonly TIMEZONE='America/Lima'
@@ -43,10 +43,37 @@ readonly SHOW=true
 readonly ASK=true
 ```
 
-Before running the script, you should edit `install.sh` with `nano` (`vim` isn't shipped)
+Before running the script, you should edit `install.sh` with `nano` (`vim` isn't shipped):
 ```bash
 nano install.sh
 ```
+
+and then apply changes, for example:
+
+```bash
+readonly HOSTNAME='awesome-arch'
+readonly TIMEZONE='America/California'
+readonly KEYMAP='us'
+readonly ROOT_PASSWORD='superstrongpassword'
+readonly USER_NAME='archlover'
+readonly USER_PASSWORD='iusearchbtw'
+
+readonly SHOW=false
+# readonly SHOW=true
+readonly ASK=false
+# readonly ASK=true
+```
+
+To change the size of the swap partition to +8G for example, edit line 122:
+```bash
+  +2G # 2 GB swap partition by default
+```
+
+to this (you can delete the comment):
+```bash
+  +8G # 8 GB swap partition
+```
+
 
 ---
 
