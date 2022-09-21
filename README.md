@@ -2,6 +2,8 @@
 
 Simply boot into a live Arch Linux ISO, download the script (using `curl`) and execute `install.sh`.
 
+Feel free to download, edit, clone, fork or open an issue.
+
 ---
 
 ## Usage
