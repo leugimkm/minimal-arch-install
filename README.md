@@ -6,7 +6,7 @@ Simply boot into a live Arch Linux ISO, download the script (using `curl`) and e
 
 ## Usage
 
-Firts, get the script by entering the following command on the terminal:
+First, get the script by entering the following command on the terminal:
 ```bash
 curl -LO https://github.com/leugimkm/minimal-arch-install/raw/main/install.sh
 ```
