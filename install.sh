@@ -58,7 +58,7 @@ get_len() {
 }
 
 info() {
-  printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - ${#1})))
+  printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - (${#1} + 4))))
   echo "${GREEN} ${1}${RESET}"
 }
 
@@ -66,7 +66,7 @@ setting() {
   local text="'$1' will be set to "
   local value="${YELLOW}${2}${RESET}"
   local len=$(get_len $value)
-  printf -- "${WHITE}.%.0s" $(seq 0 $(($COLS - (${#text} + ${len}))))
+  printf -- "${WHITE}.%.0s" $(seq 0 $(($COLS - (${#text} + ${len} + 4))))
   echo " ${text}${value}${RESET}"
 }
 
