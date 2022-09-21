@@ -149,7 +149,7 @@ mount /dev/sda1 /mnt/efi
 info "Installing"
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 pacman -Sy
-pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo git vim
+pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo git vim curl
 
 # -------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
