@@ -74,6 +74,8 @@ to this (you can delete the comment):
   +8G # 8 GB swap partition
 ```
 
+> __**TODO**__: add automated post-install scripts with different flavours.
+
 ---
 
 For more technical details go to the official site of
