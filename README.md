@@ -21,12 +21,32 @@ Then, make the downloaded script executable:
 chmod +x install.sh
 ```
 
-And finally, run the following command: 
+And finally, run the following command (see [Configure](#configure) before): 
 ```bash
 ./install.sh
 ```
 
 ## Configure
+
+By default the script has the following configuration:
+```bash
+readonly HOSTNAME='arch'
+readonly TIMEZONE='America/Lima'
+readonly KEYMAP='us'
+readonly ROOT_PASSWORD='root'
+readonly USER_NAME='bot'
+readonly USER_PASSWORD='bot'
+
+# readonly SHOW=false
+readonly SHOW=true
+# readnly ASK=false
+readonly ASK=true
+```
+
+Before running the script, you should edit `install.sh` with `nano` (`vim` isn't shipped)
+```bash
+nano install.sh
+```
 
 ---
 
