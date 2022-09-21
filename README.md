@@ -51,8 +51,8 @@ nano install.sh
 and then apply changes, for example:
 
 ```bash
-readonly HOSTNAME='awesome-arch'
-readonly TIMEZONE='America/California'
+readonly HOSTNAME='MyArchBox'
+readonly TIMEZONE='America/New_York'
 readonly KEYMAP='us'
 readonly ROOT_PASSWORD='superstrongpassword'
 readonly USER_NAME='archlover'
