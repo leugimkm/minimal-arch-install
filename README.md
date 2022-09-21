@@ -1,3 +1,4 @@
+![](assets/archlinux_logo.png)
 # Minimal Arch Installation
 
 Simply boot into a live Arch Linux ISO, download the script (using `curl`) and execute `install.sh`.
