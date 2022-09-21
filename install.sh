@@ -9,7 +9,13 @@
 #                                CONFIGURATION                                 #
 ################################################################################
 #
-# Configure these variables before running the script.
+# Configure these variables before running the script (e.g.: nano install.sh).
+#
+# By default the script shows the variables' valued and ask for confirmation
+# during the installation. Comment/uncomment to change the behaviour.
+#
+# Note: the swap size is 2gb by default, go to 'partition disk' section and
+# edit it to your needs.
 readonly HOSTNAME='arch'
 readonly TIMEZONE='America/Lima'
 readonly KEYMAP='us'
@@ -17,11 +23,6 @@ readonly ROOT_PASSWORD='root'
 readonly USER_NAME='bot'
 readonly USER_PASSWORD='bot'
 
-# By default +2G
-readonly SWAP_SIZE="2"
-# By default the script shows the variables' value and asks for confirmation
-# during the installation. Comment/uncomment to change the behaviour.
-#
 # readonly SHOW=false
 readonly SHOW=true
 # readnly ASK=false
@@ -53,8 +54,8 @@ ascii_header() {
 
 info() {
   local msg="$1"
-  printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - ${#msg})))
-  echo "$GREEN $msg"
+  printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - (${#msg} + 6))))
+  echo "$GREEN $msg$RESET"
 }
 
 setting() {
@@ -62,14 +63,17 @@ setting() {
   local value="$2"
   local output
   output="'$text' will be set to ${YELLOW}$value${RESET}"
-  printf -- "${WHITE}.%.0s" $(seq 0 $(($COLS - (${#text} + ${#value} + 18))))
-  echo " $output"
+  printf -- "${WHITE}.%.0s" $(seq 0 $(($COLS - (${#text} + ${#value} + 24))))
+  echo " $output$RESET"
 }
 
 show_settings() {
     setting "hostname" $HOSTNAME
     setting "time zone" $TIMEZONE
+    setting "keymap" $KEYMAP
+    setting "root password" $ROOT_PASSWORD
     setting "user name" $USER_NAME
+    setting "user password" $USER_PASSWORD
 }
 
 ask() {
@@ -85,13 +89,13 @@ ascii_header
 info "Starting 'Minimal Arch Installer'..."
 
 ################################################################################
-if [ $ASK = true ]
-then
-  ask
-fi
 if [ $SHOW = true ]
 then
     show_settings
+fi
+if [ $ASK = true ]
+then
+  ask
 fi
 
 # ---------------------------------------------- Set the console keyboard layout
@@ -115,7 +119,7 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
   n # new partition
   2 # partion number 2
     # default, start immediately after preceding partition
-  +"${SWAP_SIZE}"G # 2 GB swap parttion by default
+  +2G # 2 GB swap parttion by default
   n # new partition
   3 # partion number 3
     # default, start immediately after preceding partition
