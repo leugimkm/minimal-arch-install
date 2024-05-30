@@ -162,34 +162,27 @@ genfstab -U /mnt >> /mnt/etc/fstab
 info "Configuring new system"
 arch-chroot /mnt /bin/bash <<EOF
 
-info "Setting system clock"
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 hwclock --systohc
 
-info "Setting locale"
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "LANG=en_US.UTF-8" >> /etc/locale.conf
 locale-gen
 echo KEYMAP=$KEYMAP > /etc/vconsole.conf
 
-info "Setting hostname"
 echo $HOSTNAME > /etc/hostname
 echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /etc/hosts
 
-info "Setting root password"
 echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
 
-info "Creating new user"
 useradd -m -G wheel -s /bin/bash $USER_NAME
 usermod -aG audio,video,optical,storage $USER_NAME
 echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_NAME
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
-info "Installing bootloader"
 grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck
 grub-mkconfig -o /boot/grub/grub.cfg
 
-info "Enabling NetworkManager"
 systemctl enable NetworkManager
 EOF
 
