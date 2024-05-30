@@ -25,7 +25,7 @@ readonly USER_PASSWORD='bot'
 
 # readonly SHOW=false
 readonly SHOW=true
-# readnly ASK=false
+# readonly ASK=false
 readonly ASK=true
 
 ################################################################################
@@ -181,8 +181,8 @@ echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
 
 info "Creating new user"
 useradd -m -G wheel -s /bin/bash $USER_NAME
-useradd -aG audio,video,optical,storage $USER_NAME
-echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_PASSWORD
+usermod -aG audio,video,optical,storage $USER_NAME
+echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_NAME
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
 info "Installing bootloader"
