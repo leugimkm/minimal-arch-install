@@ -57,7 +57,7 @@ get_len() {
   echo "${#result}"
 }
 
-info() {
+print_info() {
   printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - (${#1} + 4))))
   echo "${GREEN} ${1}${RESET}"
 }
@@ -83,13 +83,13 @@ ask() {
   read -p 'Continue? [Y/n]: ' ok
   if ! [ $ok = 'y' ] && ! [ $ok == 'Y' ]
   then
-    info "Edit the script to continue"
+    print_info "Edit the script to continue"
     exit
   fi
 }
 
 ascii_header
-info "Starting 'Minimal Arch Installer'..."
+print_info "Starting 'Minimal Arch Installer'..."
 
 ################################################################################
 
@@ -108,7 +108,7 @@ loadkeys "$KEYMAP"
 # ------------------------------------------------------ Update the system clock
 timedatectl set-ntp true
 
-# ----------------------------------------------------------- Parition the disks
+# ---------------------------------------------------------- Partition the disks
 #
 # This will create and format partitions as:
 # /dev/sda1 - 512 Mib as boot
@@ -150,16 +150,16 @@ mkdir /mnt/efi
 mount /dev/sda1 /mnt/efi
 
 # ------------------------ Install linux kernel, firmware and essential packages
-info "Installing"
+print_info "Installing"
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 pacman -Sy
-pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo git vim curl
+pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo git vim curl man-db man-pages
 
 # -------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # ------------------------------------------------------- Configuring new system
-info "Configuring new system"
+print_info "Configuring new system"
 arch-chroot /mnt /bin/bash <<EOF
 
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
@@ -188,4 +188,4 @@ EOF
 
 umount -l /mnt
 
-info "Installation has completed. Please reboot!"
+print_info "Installation has completed. Please reboot!"
