@@ -152,7 +152,7 @@ mount /dev/sda1 /mnt/efi
 # ------------------------ Install linux kernel, firmware and essential packages
 print_info "Installing"
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
-pacman -Sy
+pacman -Sy archlinux-keyring
 pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo git vim curl man-db man-pages
 
 # -------------------------------------------------------- Generate a fstab file
