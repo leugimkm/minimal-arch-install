@@ -8,8 +8,8 @@
 
 DOTFILES_DIR="$HOME/dotfiles"
 
-sudo pacman -Syu
-sudo pacman -S adobe-source-code-pro-fonts ttf-dejavu python-setuptools python-pip xorg-server xorg-xinit qtile kitty
+yes | sudo pacman -Syu
+yes | sudo pacman -S adobe-source-code-pro-fonts ttf-dejavu python-setuptools python-pip xorg-server xorg-xinit qtile kitty
 
 git clone https://github.com/leugimkm/dotfiles "$DOTFILES_DIR"
 
