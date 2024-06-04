@@ -13,12 +13,14 @@ yes | sudo pacman -S adobe-source-code-pro-fonts ttf-dejavu python-setuptools py
 
 git clone https://github.com/leugimkm/dotfiles "$DOTFILES_DIR"
 
+mkdir -p "$HOME/.config"
+
 cp -r "$DOTFILES_DIR/pictures" "$HOME/"
 
 for config_file in "$DOTFILES_DIR/.config"/*; do
     base_name=$(basename "$config_file")
     ln -s "$config_file" "$HOME/.config/$base_name"
-    echo "Enlace creado: $HOME/.config/$base_name"
+    echo "Symlink created: $HOME/.config/$base_name"
 done
 
 cp "$DOTFILES_DIR/.bashrc" "$HOME/"
