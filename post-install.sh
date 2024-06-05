@@ -9,7 +9,20 @@
 DOTFILES_DIR="$HOME/dotfiles"
 
 yes | sudo pacman -Syu
-yes | sudo pacman -S ttf-sourcecodepro-nerd python-setuptools python-pip python-pillow xorg-server xorg-xinit qtile kitty picom wget tree alsa-utils ranger
+yes | sudo pacman -S ttf-sourcecodepro-nerd \
+    python-setuptools \
+    python-pip \
+    python-pillow \
+    xorg-server \
+    xorg-xinit \
+    wget \
+    tree \
+    alsa-utils \
+    qtile \
+    kitty \
+    ranger \
+    powerline \
+    picom \
 
 git clone https://github.com/leugimkm/dotfiles "$DOTFILES_DIR"
 
@@ -30,6 +43,7 @@ done
 
 cp "$DOTFILES_DIR/.bashrc" "$HOME/"
 cp "$DOTFILES_DIR/.xinitrc" "$HOME/"
+cp "$DOTFILES_DIR/.vimrc" "$HOME/"
 
 # PYTHON_VERSION=$(python --version | awk '{print $2}' | cut -d. -f1-2)
 # POWERLINE_DIR="/usr/lib/python$PYTHON_VERSION/site-packages/powerline/config_files"
