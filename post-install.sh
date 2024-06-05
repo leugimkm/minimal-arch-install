@@ -30,8 +30,18 @@ mkdir -p "$HOME/.config"
 
 cp -r "$DOTFILES_DIR/pictures" "$HOME/"
 
-# Encuentra todos los archivos y directorios bajo "$DOTFILES_DIR/.config"
-# y crea un enlace simbólico para cada uno en "$HOME/.config"
+if empty(glob('/.vim/autoload/plug.vim'))
+    silent !curl -flo ~/.vim/autoload/plug.vim --create-dirs
+        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+endif
+
+ranger --copy-config=all
+
+PYTHON_VERSION=$(python --version | awk '{print $2}' | cut -d. -f1-2)
+POWERLINE_DIR="/usr/lib/python$PYTHON_VERSION/site-packages/powerline/config_files"
+mkdir -p "$HOME/.config/powerline"
+cp -rf "$POWERLINE_DIR" "$HOME/.config/powerline"
+
 find "$DOTFILES_DIR/.config" -mindepth 1 -type d -printf '%P\n' | while read -r dir; do
     mkdir -p "$HOME/.config/$dir"
 done
@@ -45,9 +55,8 @@ cp "$DOTFILES_DIR/.bashrc" "$HOME/"
 cp "$DOTFILES_DIR/.xinitrc" "$HOME/"
 cp "$DOTFILES_DIR/.vimrc" "$HOME/"
 
-# PYTHON_VERSION=$(python --version | awk '{print $2}' | cut -d. -f1-2)
-# POWERLINE_DIR="/usr/lib/python$PYTHON_VERSION/site-packages/powerline/config_files"
-# mkdir -p "$HOME/.config/powerline"
-# cp -rf "$POWERLINE_DIR" "$HOME/.config/powerline"
+source ~/.bashrc
+source ~/.xinitrc
+source ~/.vimrc
 
 echo "Done!"
