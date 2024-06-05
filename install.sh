@@ -153,7 +153,21 @@ mount /dev/sda1 /mnt/efi
 print_info "Installing"
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 yes | pacman -Sy archlinux-keyring
-pacstrap /mnt base base-devel linux linux-firmware grub efibootmgr networkmanager sudo git vim curl man-db man-pages
+pacstrap /mnt base \
+  base-devel \
+  linux \
+  linux-firmware \
+  grub \
+  efibootmgr \
+  networkmanager \
+  sudo \
+  git \
+  vim \
+  curl \
+  man-db \
+  man-pages \
+  ttf-dejavu \
+
 
 # -------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
