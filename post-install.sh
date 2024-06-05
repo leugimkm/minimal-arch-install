@@ -24,7 +24,6 @@ for config_file in "$DOTFILES_DIR/.config"/*; do
 done
 
 cp "$DOTFILES_DIR/.bashrc" "$HOME/"
-cp "$DOTFILES_DIR/.vimrc" "$HOME/"
 cp "$DOTFILES_DIR/.xinitrc" "$HOME/"
 
 # PYTHON_VERSION=$(python --version | awk '{print $2}' | cut -d. -f1-2)
