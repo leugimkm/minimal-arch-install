@@ -21,6 +21,7 @@ yes | sudo pacman -S ttf-sourcecodepro-nerd \
   python-setuptools \
   python-pip \
   python-pillow \
+  nodejs \
   xorg-server \
   xorg-xinit \
   wget \
@@ -66,5 +67,7 @@ find "$DOTFILES_DIR/.config" -type f -printf '%P\n' | while read -r file; do
     ln -s "$DOTFILES_DIR/.config/$file" "$HOME/.config/$file"
     echo "Symlink created: $HOME/.config/$file"
 done
+
+chmod +x "$HOME/.config/ranger/scope.sh"
 
 print_info "Post-install Done!"
