@@ -68,6 +68,6 @@ find "$DOTFILES_DIR/.config" -type f -printf '%P\n' | while read -r file; do
     echo "Symlink created: $HOME/.config/$file"
 done
 
-chmod +x "$HOME/.config/ranger/scope.sh"
+chmod +x "$DOTFILES_DIR/.config/ranger/scope.sh"
 
 print_info "Post-install Done!"
