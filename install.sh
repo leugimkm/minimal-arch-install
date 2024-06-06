@@ -71,12 +71,12 @@ setting() {
 }
 
 show_settings() {
-    setting "hostname" $HOSTNAME
-    setting "time zone" $TIMEZONE
-    setting "keymap" $KEYMAP
-    setting "root password" $ROOT_PASSWORD
-    setting "user name" $USER_NAME
-    setting "user password" $USER_PASSWORD
+  setting "hostname" $HOSTNAME
+  setting "time zone" $TIMEZONE
+  setting "keymap" $KEYMAP
+  setting "root password" $ROOT_PASSWORD
+  setting "user name" $USER_NAME
+  setting "user password" $USER_PASSWORD
 }
 
 ask() {

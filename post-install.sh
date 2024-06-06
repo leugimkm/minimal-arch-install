@@ -6,32 +6,40 @@
 
 ###############################################################################
 
+print_info() {
+  printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - (${#1} + 4))))
+  echo "${GREEN} ${1}${RESET}"
+}
+
 DOTFILES_DIR="$HOME/dotfiles"
 
 yes | sudo pacman -Syu
 yes | sudo pacman -S ttf-sourcecodepro-nerd \
-    python-setuptools \
-    python-pip \
-    python-pillow \
-    xorg-server \
-    xorg-xinit \
-    wget \
-    tree \
-    alsa-utils \
-    qtile \
-    kitty \
-    ranger \
-    powerline \
-    picom \
+  python-setuptools \
+  python-pip \
+  python-pillow \
+  xorg-server \
+  xorg-xinit \
+  wget \
+  tree \
+  alsa-utils \
+  qtile \
+  kitty \
+  ranger \
+  powerline \
+  picom \
 
 git clone https://github.com/leugimkm/dotfiles "$DOTFILES_DIR"
 
 mkdir -p "$HOME/.config"
 
 cp -r "$DOTFILES_DIR/pictures" "$HOME/"
+cp "$DOTFILES_DIR/.bashrc" "$HOME/"
+source ~/.bashrc
+cp "$DOTFILES_DIR/.xinitrc" "$HOME/"
+cp "$DOTFILES_DIR/.vimrc" "$HOME/"
 
-!curl -flo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+echo "Copied .bashrc, .xinitrc & .vimrc"
 
 ranger --copy-config=all
 rm -rf "$HOME/.config/ranger"
@@ -51,12 +59,4 @@ find "$DOTFILES_DIR/.config" -type f -printf '%P\n' | while read -r file; do
     echo "Symlink created: $HOME/.config/$file"
 done
 
-cp "$DOTFILES_DIR/.bashrc" "$HOME/"
-cp "$DOTFILES_DIR/.xinitrc" "$HOME/"
-cp "$DOTFILES_DIR/.vimrc" "$HOME/"
-
-source ~/.bashrc
-source ~/.xinitrc
-source ~/.vimrc
-
-echo "Done!"
+print_info "Post-install Done!"
