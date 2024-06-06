@@ -30,10 +30,8 @@ mkdir -p "$HOME/.config"
 
 cp -r "$DOTFILES_DIR/pictures" "$HOME/"
 
-if empty(glob('/.vim/autoload/plug.vim'))
-    silent !curl -flo ~/.vim/autoload/plug.vim --create-dirs
-        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-endif
+!curl -flo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 ranger --copy-config=all
 
