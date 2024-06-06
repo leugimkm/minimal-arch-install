@@ -48,8 +48,8 @@ print_info "Installation done!"
 
 git clone https://github.com/leugimkm/dotfiles "$DOTFILES_DIR"
 
+mkdir -p "$HOME/projects"
 mkdir -p "$HOME/.config"
-
 cp -r "$DOTFILES_DIR/pictures" "$HOME/"
 cp "$DOTFILES_DIR/.bash_profile" "$HOME/"
 cp "$DOTFILES_DIR/.bashrc" "$HOME/"
@@ -79,6 +79,7 @@ find "$DOTFILES_DIR/.config" -type f -printf '%P\n' | while read -r file; do
     echo "Symlink created: $HOME/.config/$file"
 done
 
+chmod +x "$DOTFILES_DIR/.config/qtile/autostart.sh"
 chmod +x "$DOTFILES_DIR/.config/ranger/scope.sh"
 
 print_info "Post-install Done!"
