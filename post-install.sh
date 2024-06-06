@@ -34,6 +34,7 @@ cp -r "$DOTFILES_DIR/pictures" "$HOME/"
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 ranger --copy-config=all
+rm -rf "$HOME/.config/ranger"
 
 PYTHON_VERSION=$(python --version | awk '{print $2}' | cut -d. -f1-2)
 POWERLINE_DIR="/usr/lib/python$PYTHON_VERSION/site-packages/powerline/config_files"
@@ -45,6 +46,7 @@ find "$DOTFILES_DIR/.config" -mindepth 1 -type d -printf '%P\n' | while read -r 
 done
 
 find "$DOTFILES_DIR/.config" -type f -printf '%P\n' | while read -r file; do
+    rm -f "$HOME/.config/$file"
     ln -s "$DOTFILES_DIR/.config/$file" "$HOME/.config/$file"
     echo "Symlink created: $HOME/.config/$file"
 done
