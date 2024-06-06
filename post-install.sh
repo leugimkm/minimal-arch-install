@@ -14,6 +14,9 @@ print_info() {
 DOTFILES_DIR="$HOME/dotfiles"
 
 yes | sudo pacman -Syu
+
+print_info "Updated!"
+
 yes | sudo pacman -S ttf-sourcecodepro-nerd \
   python-setuptools \
   python-pip \
@@ -29,25 +32,30 @@ yes | sudo pacman -S ttf-sourcecodepro-nerd \
   powerline \
   picom \
 
+print_info "Installation done!"
+
 git clone https://github.com/leugimkm/dotfiles "$DOTFILES_DIR"
 
 mkdir -p "$HOME/.config"
 
 cp -r "$DOTFILES_DIR/pictures" "$HOME/"
+cp "$DOTFILES_DIR/.bash_profile" "$HOME/"
 cp "$DOTFILES_DIR/.bashrc" "$HOME/"
 source ~/.bashrc
 cp "$DOTFILES_DIR/.xinitrc" "$HOME/"
 cp "$DOTFILES_DIR/.vimrc" "$HOME/"
 
-echo "Copied .bashrc, .xinitrc & .vimrc"
-
-ranger --copy-config=all
-rm -rf "$HOME/.config/ranger"
+print_info "Copied .bash_profile, .bashrc, .xinitrc & .vimrc"
 
 PYTHON_VERSION=$(python --version | awk '{print $2}' | cut -d. -f1-2)
 POWERLINE_DIR="/usr/lib/python$PYTHON_VERSION/site-packages/powerline/config_files"
 mkdir -p "$HOME/.config/powerline"
 cp -rf "$POWERLINE_DIR" "$HOME/.config/powerline"
+
+print_info "Powerline done!"
+
+ranger --copy-config=all
+rm -rf "$HOME/.config/ranger"
 
 find "$DOTFILES_DIR/.config" -mindepth 1 -type d -printf '%P\n' | while read -r dir; do
     mkdir -p "$HOME/.config/$dir"
