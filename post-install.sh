@@ -24,11 +24,11 @@ print_info() {
 
 DOTFILES_DIR="$HOME/dotfiles"
 
-yes | sudo pacman -Syu
+sudo pacman -Syu
 
 print_info "Updated!"
 
-yes | sudo pacman -S ttf-sourcecodepro-nerd \
+sudo pacman -S ttf-sourcecodepro-nerd \
   python-setuptools \
   python-pip \
   python-pillow \
