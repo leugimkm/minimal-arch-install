@@ -168,7 +168,6 @@ pacstrap /mnt base \
   man-pages \
   ttf-dejavu \
 
-
 # -------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
 
@@ -199,6 +198,18 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 systemctl enable NetworkManager
 EOF
+
+# ------------------------------------------------------------ Post-installation
+print_info "Post-installation"
+
+read -p "Do you want to download the post-install script? [Y/n]: " download_post_install
+if [[ $download_post_install =~ ^[Yy]$ ]]
+then
+    curl -L -o /home/$user/post-install.sh \
+        https://github.com/leugimkm/minimal-arch-install/raw/main/post-install.sh
+    chmod +x /home/$user/post-install.sh
+    chown $user:$user /home/$user/post-install.sh
+fi
 
 umount -l /mnt
 
