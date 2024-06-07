@@ -32,6 +32,7 @@ yes | sudo pacman -S ttf-sourcecodepro-nerd \
   python-setuptools \
   python-pip \
   python-pillow \
+  tk \
   nodejs \
   xorg-server \
   xorg-xinit \
