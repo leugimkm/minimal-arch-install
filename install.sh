@@ -205,10 +205,11 @@ print_info "Post-installation"
 read -p "Do you want to download the post-install script? [Y/n]: " download_post_install
 if [[ $download_post_install =~ ^[Yy]$ ]]
 then
-    curl -L -o /home/$user/post-install.sh \
+    curl -L -o /root/post-install.sh \
         https://github.com/leugimkm/minimal-arch-install/raw/main/post-install.sh
-    chmod +x /home/$user/post-install.sh
-    chown $user:$user /home/$user/post-install.sh
+    chmod +x /root/post-install.sh
+    cp /root/post-install.sh /mnt/home/$user/
+    arch-chroot /mnt chown $user:$user /home/$user/post-install.sh
 fi
 
 umount -l /mnt
