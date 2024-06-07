@@ -53,7 +53,10 @@ git clone https://github.com/leugimkm/dotfiles "$DOTFILES_DIR"
 
 mkdir -p "$HOME/projects"
 mkdir -p "$HOME/.config"
+
 cp -r "$DOTFILES_DIR/pictures" "$HOME/"
+cp -r "$DOTFILES_DIR/.vim" "$HOME/"
+
 cp "$DOTFILES_DIR/.bash_profile" "$HOME/"
 cp "$DOTFILES_DIR/.bashrc" "$HOME/"
 source ~/.bashrc
