@@ -43,6 +43,7 @@ yes | sudo pacman -S ttf-sourcecodepro-nerd \
   qtile \
   kitty \
   ranger \
+  qutebrowser \
   powerline \
   picom \
 
