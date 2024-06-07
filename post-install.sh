@@ -34,6 +34,7 @@ yes | sudo pacman -S ttf-sourcecodepro-nerd \
   python-pillow \
   tk \
   nodejs \
+  npm \
   xorg-server \
   xorg-xinit \
   wget \
