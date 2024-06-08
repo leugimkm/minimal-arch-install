@@ -202,8 +202,9 @@ EOF
 # ------------------------------------------------------------ Post-installation
 print_info "Post-installation"
 
-arch-chroot /mnt /bin/bash <<EOF
 read -p "Do you want to download the post-install script? [Y/n]: " download_post_install
+
+arch-chroot /mnt /bin/bash <<EOF
 if [[ $download_post_install =~ ^[Yy]$ ]]
 then
     curl -L -o /home/$USER_NAME/post-install.sh \
