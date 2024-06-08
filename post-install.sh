@@ -54,16 +54,13 @@ git clone https://github.com/leugimkm/dotfiles "$DOTFILES_DIR"
 mkdir -p "$HOME/projects"
 mkdir -p "$HOME/.config"
 
-cp -r "$DOTFILES_DIR/pictures" "$HOME/"
-cp -r "$DOTFILES_DIR/.vim" "$HOME/"
-
-cp "$DOTFILES_DIR/.bash_profile" "$HOME/"
-cp "$DOTFILES_DIR/.bashrc" "$HOME/"
+files_to_copy=("pictures" ".vim" ".bash_profile" ".bashrc" ".xinitrc" ".vimrc")
+for file in "${files_to_copy[@]}"; do
+  cp -r "$DOTFILES_DIR/$file" "$HOME/"
+done
 source ~/.bashrc
-cp "$DOTFILES_DIR/.xinitrc" "$HOME/"
-cp "$DOTFILES_DIR/.vimrc" "$HOME/"
 
-print_info "Copied .bash_profile, .bashrc, .xinitrc & .vimrc"
+print_info "Copied files!"
 
 PYTHON_VERSION=$(python --version | awk '{print $2}' | cut -d. -f1-2)
 POWERLINE_DIR="/usr/lib/python$PYTHON_VERSION/site-packages/powerline/config_files"
@@ -76,13 +73,13 @@ ranger --copy-config=all
 rm -rf "$HOME/.config/ranger"
 
 find "$DOTFILES_DIR/.config" -mindepth 1 -type d -printf '%P\n' | while read -r dir; do
-    mkdir -p "$HOME/.config/$dir"
+  mkdir -p "$HOME/.config/$dir"
 done
 
 find "$DOTFILES_DIR/.config" -type f -printf '%P\n' | while read -r file; do
-    rm -f "$HOME/.config/$file"
-    ln -s "$DOTFILES_DIR/.config/$file" "$HOME/.config/$file"
-    echo "Symlink created: $HOME/.config/$file"
+  rm -f "$HOME/.config/$file"
+  ln -s "$DOTFILES_DIR/.config/$file" "$HOME/.config/$file"
+  echo "Symlink created: $HOME/.config/$file"
 done
 
 chmod +x "$DOTFILES_DIR/.config/qtile/autostart.sh"
