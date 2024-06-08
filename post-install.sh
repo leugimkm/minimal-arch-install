@@ -24,30 +24,45 @@ print_info() {
 
 DOTFILES_DIR="$HOME/dotfiles"
 
-sudo pacman -Syu
+install_packages() {
+  local expect_script=$(cat <<'EOF'
+  #!/usr/bin/expect -f
+  spawn sudo pacman -Syu
+  expect {
+      "there is nothing to do" { send_user "\nSystem is up to date\n" }
+      "Proceed with installation?" { send -- "y\r"; exp_continue }
+      "replace" { send -- "y\r"; exp_continue }
+      "Enter a number" { send -- "1\r"; exp_continue }
+  }
+EOF
+  )
+  echo "$expect_script" | expect -
 
-print_info "Updated!"
+  print_info "Updated!"
 
-sudo pacman -S ttf-sourcecodepro-nerd \
-  python-setuptools \
-  python-pip \
-  python-pillow \
-  tk \
-  nodejs \
-  npm \
-  xorg-server \
-  xorg-xinit \
-  wget \
-  tree \
-  alsa-utils \
-  qtile \
-  kitty \
-  ranger \
-  qutebrowser \
-  powerline \
-  picom \
+  sudo pacman -S ttf-sourcecodepro-nerd \
+    python-setuptools \
+    python-pip \
+    python-pillow \
+    tk \
+    nodejs \
+    npm \
+    xorg-server \
+    xorg-xinit \
+    wget \
+    tree \
+    alsa-utils \
+    qtile \
+    kitty \
+    ranger \
+    qutebrowser \
+    powerline \
+    picom \
 
-print_info "Installation done!"
+  print_info "Installation done!"
+}
+
+install_packages
 
 git clone https://github.com/leugimkm/dotfiles "$DOTFILES_DIR"
 
