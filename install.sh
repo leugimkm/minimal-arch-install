@@ -202,15 +202,16 @@ EOF
 # ------------------------------------------------------------ Post-installation
 print_info "Post-installation"
 
+arch-chroot /mnt /bin/bash <<EOF
 read -p "Do you want to download the post-install script? [Y/n]: " download_post_install
 if [[ $download_post_install =~ ^[Yy]$ ]]
 then
-    curl -L -o /root/post-install.sh \
+    curl -L -o /home/$USER_NAME/post-install.sh \
         https://github.com/leugimkm/minimal-arch-install/raw/main/post-install.sh
-    chmod +x /root/post-install.sh
-    cp /root/post-install.sh /mnt/home/$user/
-    arch-chroot /mnt chown $user:$user /home/$user/post-install.sh
+    chmod +x /home/$USER_NAME/post-install.sh
+    chown $USER_NAME:$USER_NAME /home/$USER_NAME/post-install.sh
 fi
+EOF
 
 umount -l /mnt
 
