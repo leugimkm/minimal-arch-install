@@ -80,15 +80,6 @@ show_settings() {
   setting "user password" $user_password
 }
 
-ask() {
-  read -p 'Continue? [Y/n]: ' ok
-  if ! [ $ok = 'y' ] && ! [ $ok == 'Y' ]
-  then
-    print_info "Edit the script to continue"
-    exit
-  fi
-}
-
 ask_custom_settings() {
   read -p "Do you want to customize the installation settings? [Y/n]: " customize_install
   if [[ $customize_install =~ ^[Yy]$ ]]
@@ -136,16 +127,23 @@ print_info "Starting 'Minimal Arch Installer'..."
 
 ################################################################################
 
-if [ $SHOW = true ]
-then
-    show_settings
-fi
 if [ $ASK = true ]
 then
-  ask
+  while true; do
+    if [ $SHOW = true ]
+    then
+      show_settings
+    fi
+    read -p 'Continue with these settings? [Y/n]: ' ok
+    if [ $ok = 'y' ] || [ $ok == 'Y' ]
+    then
+      break
+    else
+      print_info "You chose to modify the settings."
+      ask_custom_settings
+    fi
+  done
 fi
-
-ask_custom_settings
 
 # ---------------------------------------------- Set the console keyboard layout
 loadkeys "$KEYMAP"
@@ -168,7 +166,7 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
   n # new partition
   2 # partion number 2
     # default, start immediately after preceding partition
-  +2G # swap parttion, 2GB by default
+  +${swap_size}G # swap parttion, 2GB by default
   n # new partition
   3 # partion number 3
     # default, start immediately after preceding partition
