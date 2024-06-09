@@ -70,6 +70,7 @@ show_settings() {
   setting "hostname" $HOSTNAME
   setting "time zone" $TIMEZONE
   setting "keymap" $KEYMAP
+  setting "swap size" $swap_size
   setting "root password" $ROOT_PASSWORD
   setting "user name" $user_name
   setting "user password" $user_password
