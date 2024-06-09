@@ -20,8 +20,9 @@ readonly HOSTNAME='arch'
 readonly TIMEZONE='America/Lima'
 readonly KEYMAP='us'
 readonly ROOT_PASSWORD='root'
-readonly USER_NAME='bot'
-readonly USER_PASSWORD='bot'
+user_name='bot'
+user_password='bot'
+swap_size=2
 
 # readonly SHOW=false
 readonly SHOW=true
@@ -75,8 +76,8 @@ show_settings() {
   setting "time zone" $TIMEZONE
   setting "keymap" $KEYMAP
   setting "root password" $ROOT_PASSWORD
-  setting "user name" $USER_NAME
-  setting "user password" $USER_PASSWORD
+  setting "user name" $user_name
+  setting "user password" $user_password
 }
 
 ask() {
@@ -85,6 +86,48 @@ ask() {
   then
     print_info "Edit the script to continue"
     exit
+  fi
+}
+
+ask_custom_settings() {
+  read -p "Do you want to customize the installation settings? [Y/n]: " customize_install
+  if [[ $customize_install =~ ^[Yy]$ ]]
+  then
+    read -p "Enter your username: " user_name
+    read -sp "Enter your password: " user_password
+    echo
+    read -sp "Re-enter your password: " user_password2
+    echo
+    while [ "$user_password" != "$user_password2" ]; do
+      echo "Passwords do not match. Please try again."
+      read -sp "Enter your password: " user_password
+      echo
+      read -sp "Re-enter your password: " user_password2
+      echo
+    done
+    while true; do
+      read -p "Enter swap partition size in GB (default is 2): " swap_size
+      if [[ $swap_size =~ ^[0-9]+$ ]]; then
+        break
+      else
+        echo "Invalid input. Please enter an integer."
+      fi
+    done
+    print_info "Starting 'Minimal Arch Installer'..."
+    setting "swap partition size" "${swap_size}G"
+    setting "username" $user
+    read -p "Do you want to display the password? [Y/n]: " display_password
+    if [[ $display_password =~ ^[Yy]$ ]]
+    then
+      setting "password" $user_password
+    else
+      setting "password" "********"
+    fi
+    read -p "Are you ok with these settings? [Y/n]: " confirm_settings
+    if [[ $confirm_settings =~ ^[Nn]$ ]]
+    then
+      ask_custom_settings
+    fi
   fi
 }
 
@@ -101,6 +144,8 @@ if [ $ASK = true ]
 then
   ask
 fi
+
+ask_custom_settings
 
 # ---------------------------------------------- Set the console keyboard layout
 loadkeys "$KEYMAP"
@@ -123,7 +168,7 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
   n # new partition
   2 # partion number 2
     # default, start immediately after preceding partition
-  +2G # 2 GB swap parttion by default
+  +2G # swap parttion, 2GB by default
   n # new partition
   3 # partion number 3
     # default, start immediately after preceding partition
@@ -188,9 +233,9 @@ echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /etc/hosts
 
 echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
 
-useradd -m -G wheel -s /bin/bash $USER_NAME
-usermod -aG audio,video,optical,storage $USER_NAME
-echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_NAME
+useradd -m -G wheel -s /bin/bash $user_name
+usermod -aG audio,video,optical,storage $user_name
+echo -en "$user_password\n$user_password" | passwd $user_name
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
 grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck
@@ -207,10 +252,10 @@ read -p "Do you want to download the post-install script? [Y/n]: " download_post
 arch-chroot /mnt /bin/bash <<EOF
 if [[ $download_post_install =~ ^[Yy]$ ]]
 then
-    curl -L -o /home/$USER_NAME/post-install.sh \
+    curl -L -o /home/$user_name/post-install.sh \
         https://github.com/leugimkm/minimal-arch-install/raw/main/post-install.sh
-    chmod +x /home/$USER_NAME/post-install.sh
-    chown $USER_NAME:$USER_NAME /home/$USER_NAME/post-install.sh
+    chmod +x /home/$user_name/post-install.sh
+    chown $user_name:$user_name /home/$user_name/post-install.sh
 fi
 EOF
 
