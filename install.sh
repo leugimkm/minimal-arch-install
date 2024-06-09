@@ -8,14 +8,11 @@
 ################################################################################
 #                                CONFIGURATION                                 #
 ################################################################################
-#
+
 # Configure these variables before running the script (e.g.: nano install.sh).
-#
 # By default the script shows the variables' valued and ask for confirmation
 # during the installation. Comment/uncomment to change the behaviour.
-#
-# Note: the swap size is 2gb by default, go to 'partition disk' section and
-# edit it to your needs.
+
 readonly HOSTNAME='arch'
 readonly TIMEZONE='America/Lima'
 readonly KEYMAP='us'
@@ -28,8 +25,6 @@ swap_size=2
 readonly SHOW=true
 # readonly ASK=false
 readonly ASK=true
-
-################################################################################
 
 BLACK=$(tput setaf 0)
 RED=$(tput setaf 1)
@@ -104,28 +99,11 @@ ask_custom_settings() {
         echo "Invalid input. Please enter an integer."
       fi
     done
-    print_info "Starting 'Minimal Arch Installer'..."
-    setting "swap partition size" "${swap_size}G"
-    setting "username" $user
-    read -p "Do you want to display the password? [Y/n]: " display_password
-    if [[ $display_password =~ ^[Yy]$ ]]
-    then
-      setting "password" $user_password
-    else
-      setting "password" "********"
-    fi
-    read -p "Are you ok with these settings? [Y/n]: " confirm_settings
-    if [[ $confirm_settings =~ ^[Nn]$ ]]
-    then
-      ask_custom_settings
-    fi
   fi
 }
 
 ascii_header
-print_info "Starting 'Minimal Arch Installer'..."
-
-################################################################################
+print_info "Configuration"
 
 if [ $ASK = true ]
 then
@@ -145,14 +123,11 @@ then
   done
 fi
 
-# ---------------------------------------------- Set the console keyboard layout
-loadkeys "$KEYMAP"
+print_info "Starting 'Minimal Arch Installer'..."
 
-# ------------------------------------------------------ Update the system clock
-timedatectl set-ntp true
-
+loadkeys "$KEYMAP"        # Set the consoloe keyboad layout, 'en' by default
+timedatectl set-ntp true  # Update the system clock
 # ---------------------------------------------------------- Partition the disks
-#
 # This will create and format partitions as:
 # /dev/sda1 - 512 Mib as boot
 # /dev/sda2 - 2 Gib as swap
@@ -180,18 +155,15 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
   w # write the partition table
   q # and we're done
 EOF
-
 # -------------------------------------------------------- Format the partitions
 mkfs.fat -F32 /dev/sda1
 mkswap /dev/sda2
 swapon /dev/sda2
 mkfs.ext4 /dev/sda3
-
 # ------------------------------------------------------- Mount the file systems
 mount /dev/sda3 /mnt
 mkdir /mnt/efi
 mount /dev/sda1 /mnt/efi
-
 # ------------------------ Install linux kernel, firmware and essential packages
 print_info "Installing"
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
@@ -210,10 +182,8 @@ pacstrap /mnt base \
   man-db \
   man-pages \
   ttf-dejavu \
-
 # -------------------------------------------------------- Generate a fstab file
 genfstab -U /mnt >> /mnt/etc/fstab
-
 # ------------------------------------------------------- Configuring new system
 print_info "Configuring new system"
 arch-chroot /mnt /bin/bash <<EOF
