@@ -112,14 +112,29 @@ then
     then
       show_settings
     fi
-    read -p 'Continue with these settings? [Y/n]: ' ok
-    if [ $ok = 'y' ] || [ $ok == 'Y' ]
-    then
-      break
-    else
-      print_info "You chose to modify the settings."
-      ask_custom_settings
-    fi
+    echo "Choose an option:"
+    echo "1. Continue with these settings"
+    echo "2. Modify the settings"
+    echo "3. Exit"
+    read -p 'Enter your option[1-3]: ' option
+    case $option in
+      1)
+        read -p 'Are you sure to continue with these settings? [Y/n]: ' ok
+        if [ $ok = 'y' ] || [ $ok == 'Y' ]
+        then
+          break
+        fi
+        ;;
+      2)
+        ask_custom_settings
+        ;;
+      3)
+        exit 0
+        ;;
+      *)
+        echo "Invalid option, choose a number between 1-3"
+        ;;
+    esac
   done
 fi
 
