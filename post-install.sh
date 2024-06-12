@@ -58,6 +58,8 @@ EOF
     qutebrowser \
     powerline \
     picom \
+    bat \
+    fz \
 
   print_info "Installation done!"
 }
