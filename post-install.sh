@@ -59,7 +59,7 @@ EOF
     powerline \
     picom \
     bat \
-    fz \
+    fzf \
 
   print_info "Installation done!"
 }
