@@ -71,7 +71,7 @@ git clone https://github.com/leugimkm/dotfiles "$DOTFILES_DIR"
 mkdir -p "$HOME/projects"
 mkdir -p "$HOME/.config"
 
-files_to_copy=("pictures" ".vim" ".bash_profile" ".bashrc" ".xinitrc" ".vimrc")
+files_to_copy=("pictures" ".vim" ".bash_profile" ".bashrc" ".xinitrc" ".vimrc" "run.sh")
 for file in "${files_to_copy[@]}"; do
   cp -r "$DOTFILES_DIR/$file" "$HOME/"
 done
