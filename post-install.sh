@@ -61,6 +61,7 @@ EOF
     bat \
     lsd \
     fzf \
+    rofi \
 
   print_info "Installation done!"
 }
