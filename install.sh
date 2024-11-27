@@ -193,7 +193,7 @@ pacstrap /mnt base \
   networkmanager \
   sudo \
   git \
-  vim \
+  gvim \
   curl \
   man-db \
   man-pages \
