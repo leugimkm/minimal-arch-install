@@ -105,4 +105,10 @@ done
 chmod +x "$DOTFILES_DIR/.config/qtile/autostart.sh"
 chmod +x "$DOTFILES_DIR/.config/ranger/scope.sh"
 
+if [ ! -e "$HOME/.tmux/plugins/tpm" ]; then
+  printf "WARNING: Cannot found TPM (Tmux Plugin Manager) \
+ at default location: \$HOME/.tmux/plugins/tpm.\n"
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+fi
+
 print_info "Post-install Done!"
