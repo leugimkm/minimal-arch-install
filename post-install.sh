@@ -62,6 +62,7 @@ EOF
     lsd \
     fzf \
     rofi \
+    tmux \
 
   print_info "Installation done!"
 }
