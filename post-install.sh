@@ -63,6 +63,8 @@ EOF
     fzf \
     rofi \
     tmux \
+    zsh \
+    zoxide \
 
   print_info "Installation done!"
 }
