@@ -50,6 +50,7 @@ EOF
     xorg-server \
     xorg-xinit \
     wget \
+    unzip \
     tree \
     alsa-utils \
     qtile \
