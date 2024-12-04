@@ -114,4 +114,6 @@ if [ ! -e "$HOME/.tmux/plugins/tpm" ]; then
   git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 fi
 
+curl -s https://ohmyposh.dev/install.sh | bash -s
+
 print_info "Post-install Done!"
