@@ -41,6 +41,7 @@ EOF
   print_info "Updated!"
 
   sudo pacman -S ttf-sourcecodepro-nerd \
+    openssh \
     python-setuptools \
     python-pip \
     python-pillow \
