@@ -17,7 +17,7 @@ readonly ROOT_PASSWORD='root'
 USER_NAME='bot'
 USER_PASSWORD='bot'
 SWAP_SIZE=2
-BOOT_LOADER='BIOS'  # BIOS or UEFI
+BOOT_LOADER='UEFI'  # BIOS or UEFI
 
 # By default the script shows the variables' value and ask for confirmation
 # during the installation.
