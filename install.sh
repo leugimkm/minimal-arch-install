@@ -273,9 +273,9 @@ print_info "Configuring the system"
 genfstab -U /mnt >> /mnt/etc/fstab
 
 if [ "$boot_loader" = "UEFI" ]; then
-  grub_install_CMD="grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
+  grub_install_CMD="/usr/bin/grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
 else
-  grub_install_CMD="grub-install --target=i386pc /dev/sda --recheck"
+  grub_install_CMD="/usr/bin/grub-install --target=i386pc /dev/sda --recheck"
 fi
 
 arch-chroot /mnt /bin/bash <<EOF
