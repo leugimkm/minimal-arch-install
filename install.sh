@@ -142,20 +142,10 @@ rollback() {
     sgdisk --zap-all /dev/sda
     echo "Partition table wiped using sgdisk."
   else
-    dd if=/dev/zeo of=/dev/sda bs=512 count=1
+    dd if=/dev/zero of=/dev/sda bs=512 count=1 conv=notrunc
     echo "Partition table wiped using dd."
   fi
 }
-
-error_exit() {
-  echo "${RED}An error ocurred during the installation...${RESET}"
-  read -p "Do you want to execute a rollback? [Y/n]: " response
-  if [[ $response =~ ^[yy]$ ]]; then
-    rollback
-  fi
-  exit 1
-}
-trap error_exit ERR
 
 ascii_header
 print_info "Configuration"
