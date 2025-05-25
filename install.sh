@@ -14,10 +14,10 @@ readonly HOSTNAME='arch'
 readonly TIMEZONE='America/Lima'
 readonly KEYMAP='us'
 readonly ROOT_PASSWORD='root'
-user_name='bot'
-user_password='bot'
-swap_size=2
-boot_loader='BIOS'  # BIOS or UEFI
+USER_NAME='bot'
+USER_PASSWORD='bot'
+SWAP_SIZE=2
+BOOT_LOADER='BIOS'  # BIOS or UEFI
 
 # By default the script shows the variables' value and ask for confirmation
 # during the installation.
@@ -86,65 +86,46 @@ show_settings() {
   setting "hostname" $HOSTNAME
   setting "time zone" $TIMEZONE
   setting "keymap" $KEYMAP
-  setting "swap size" $swap_size
-  setting "root password" $ROOT_PASSWORD
-  setting "user name" $user_name
-  setting "user password" $user_password
-  setting "boot loader" $boot_loader
+  setting "swap size" $SWAP_SIZE
+  setting "root password" "********"
+  setting "user name" $USER_NAME
+  setting "user password" $USER_PASSWORD
+  setting "boot loader" $BOOT_LOADER
 }
 
 ask_custom_settings() {
-  read -p "Do you want to customize the installation settings? [Y/n]: " \
-    customize_install
-  if [[ $customize_install =~ ^[Yy]$ ]]; then
-    read -p "Enter your username: " user_name
-    read -sp "Enter your password: " user_password
-    echo
-    read -sp "Re-enter your password: " user_password2
-    echo
-    while [ "$user_password" != "$user_password2" ]; do
-      echo "Passwords do not match. Please try again."
-      read -sp "Enter your password: " user_password
-      echo
-      read -sp "Re-enter your password: " user_password2
-      echo
-    done
-    while true; do
-      read -p "Enter swap partition size in GB (default is 2): " swap_size
-      if [[ $swap_size =~ ^[0-9]+$ ]]; then
-        break
-      else
-        echo "Invalid input. Please enter an integer."
-      fi
-    done
-    read -p "Do you want to modify the boot loader? [Y/n]: " change_boot_loader
-    if [[ $change_boot_loader =~ ^[Yy]$ ]]; then
-      echo "Choose a boot loader:"
-      echo "1. BIOS (default)"
-      echo "2. UEFI"
-      read -p "Enter your option [1-2]: " user_option
-      if [[ $user_option == "1" ]]; then
-        boot_loader="BIOS"
-      else
-        boot_loader="UEFI"
-      fi
-    fi
+  read -rp "Do you want to customize the installation settings? [Y/n]: " answer
+  [[ $answer =~ ^[Yy]$ ]] || return
+  read -p "Enter your username: " USER_NAME
+  while true; do
+    read -rsp "Enter your ${YELLOW}password${RESET}: " pwd1; echo
+    read -rsp "${YELLOW}Confirm{$RESET} your password: " pwd2; echo
+    [[ $pwd1 == $pwd2 ]] && user_password=pwd1 && break
+    echo "Passwords do not match. Please try again."
+  done
+  while true; do
+    read -rp "Swap partition size in GB (default is $SWAP_SIZE): " tmp
+    [[ -z $tmp || $tmp =~ ^[0-9]+$ ]] && SWAP_SIZE=${tmp:-$SWAP_SIZE} && break
+    echo "Invalid input. Please enter an integer."
+  done
+  read -rp "Do you want to modify the boot loader? [Y/n]: " change_boot_loader
+  if [[ $change_boot_loader =~ ^[Yy]$ ]]; then
+    echo "Choose a boot loader: [1] BIOS, [2] UEFI (current: $BOOT_LOADER)"
+    read -rp "Enter your option [1-2]: " user_option
+    BOOT_LOADER=$([[ $user_option == "2"]] && echo "UEFI" || echo "BIOS")
   fi
 }
 
 rollback() {
-  echo "${RED}Executing rollback ${RESET}"
-  if mountpoint -q /mnt; then
-    umount -l /mnt && echo "Unmounted /mnt successfully."
-  fi
+  echo "${RED}Rolling back...${RESET}"
+  mountpoint -q /mnt && umount -l /mnt || true
   echo "Wiping partition table on /dev/sda..."
   if command -v sgdisk &> /dev/null; then
     sgdisk --zap-all /dev/sda
-    echo "Partition table wiped using sgdisk."
   else
     dd if=/dev/zero of=/dev/sda bs=512 count=1 conv=notrunc
-    echo "Partition table wiped using dd."
   fi
+  echo "Done."
 }
 
 ascii_header
@@ -162,7 +143,7 @@ if [ $ASK = true ]; then
     read -p 'Enter your option[1-3]: ' option
     case $option in
       1)
-        read -p 'Are you sure to continue with these settings? [Y/n]: ' ok
+        read -rp 'Are you sure to continue with these settings? [Y/n]: ' ok
         if [ $ok = 'y' ] || [ $ok == 'Y' ]; then
           break
         fi
@@ -189,7 +170,7 @@ print_info "Starting 'Minimal Arch Installer'"
 loadkeys "$KEYMAP"        # Set the console keyboard layout, 'en' by default
 timedatectl set-ntp true  # Update the system clock
 
-if [ "$boot_loader" = "BIOS" ]; then
+if [ "$BOOT_LOADER" = "BIOS" ]; then
   # ----------------------------------------------- Partition the disks for BIOS
   # This will create and format partitions as:
   # /dev/sda1 - 2 GB (by default) as swap
@@ -201,7 +182,7 @@ n               # Create a new partition
 e               # Partition type: extended
 1               # Partition number 1
                 # First sector: default - 2048, beginning of the disk
-+${swap_size}G  # Last sector: size of the swap partition
++${SWAP_SIZE}G  # Last sector: size of the swap partition
 n               # Create a new partition
 p               # Primary partition
 2               # Partition number 2
@@ -218,6 +199,10 @@ a               # Toggle a bootable flag
 w               # Write the partition table to disk
 q               # Quit fdisk
 EOF
+  mkfs.ext4 /dev/sda2
+  mkswap /dev/sda1
+  mount /dev/sda2 /mnt
+  swapon /dev/sda1
 else
   # ----------------------------------------------- Partition the disks for UEFI
   # This will create and format partitions as:
@@ -234,7 +219,7 @@ n               # Create a new partition
 n               # Create a new partition
 2               # Partition number 2
                 # First sector: default - start after preceding partition
-+${swap_size}G  # Last sector: size of the swap partition
++${SWAP_SIZE}G  # Last sector: size of the swap partition
 n               # Create a new partition
 3               # Partition number 3
                 # First sector: default - start after preceding partition
@@ -248,17 +233,9 @@ t               # Change a partition type
 w               # Write the partition table to disk
 q               # Quit fdisk
 EOF
-fi
-
-if [ "$boot_loader" = "BIOS" ]; then
-  mkfs.ext4 /dev/sda2
-  mkswap /dev/sda1
-  mount /dev/sda2 /mnt
-  swapon /dev/sda1
-else
-  mkfs.ext4 /dev/sda3
-  mkswap /dev/sda2
   mkfs.fat -F32 /dev/sda1
+  mkswap /dev/sda2
+  mkfs.ext4 /dev/sda3
   mount /dev/sda3 /mnt
   mount --mkdir /dev/sda1 /mnt/efi
   swapon /dev/sda2
@@ -272,7 +249,7 @@ print_info "Installing linux kernel, firmware and essential packages"
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 yes | pacman -Sy archlinux-keyring
 
-if [ "$boot_loader" = "UEFI" ]; then
+if [ "$BOOT_LOADER" = "UEFI" ]; then
   pacstrap /mnt "${BASE_PACKAGES[@]}" efibootmgr
 else
   pacstrap /mnt "${BASE_PACKAGES[@]}"
@@ -285,7 +262,7 @@ fi
 print_info "Configuring the system"
 genfstab -U /mnt >> /mnt/etc/fstab
 
-if [ "$boot_loader" = "BIOS" ]; then
+if [ "$BOOT_LOADER" = "BIOS" ]; then
   grub_install_CMD="grub-install --target=i386-pc /dev/sda"
 else
   grub_install_CMD="grub-install \
@@ -307,9 +284,9 @@ echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /etc/hosts
 
 echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
 
-useradd -m -G wheel -s /bin/bash $user_name
-usermod -aG audio,video,optical,storage $user_name
-echo -en "$user_password\n$user_password" | passwd $user_name
+useradd -m -G wheel -s /bin/bash $USER_NAME
+usermod -aG audio,video,optical,storage $USER_NAME
+echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_NAME
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
 $grub_install_CMD
@@ -324,10 +301,10 @@ read -p "Do you want to download the post-install script? [Y/n]: " \
   download_post_install
 arch-chroot /mnt /bin/bash <<EOF
 if [[ $download_post_install =~ ^[Yy]$ ]]; then
-    curl -L -o /home/$user_name/post-install.sh \
+    curl -L -o /home/$USER_NAME/post-install.sh \
         https://github.com/leugimkm/minimal-arch-install/raw/main/post-install.sh
-    chmod +x /home/$user_name/post-install.sh
-    chown $user_name:$user_name /home/$user_name/post-install.sh
+    chmod +x /home/$USER_NAME/post-install.sh
+    chown $USER_NAME:$USER_NAME/home/$USER_NAME/post-install.sh
 fi
 EOF
 # ------------------------------------------------------------------------------
