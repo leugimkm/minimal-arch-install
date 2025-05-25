@@ -112,7 +112,7 @@ ask_custom_settings() {
   if [[ $change_boot_loader =~ ^[Yy]$ ]]; then
     echo "Choose a boot loader: [1] BIOS, [2] UEFI (current: $BOOT_LOADER)"
     read -rp "Enter your option [1-2]: " user_option
-    BOOT_LOADER=$([[ $user_option == "2"]] && echo "UEFI" || echo "BIOS")
+    BOOT_LOADER=$([[ $user_option == "2" ]] && echo "UEFI" || echo "BIOS")
   fi
 }
 
