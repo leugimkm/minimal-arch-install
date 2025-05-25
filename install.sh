@@ -260,9 +260,9 @@ echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacma
 yes | pacman -Sy archlinux-keyring
 
 if [ "$boot_loader" = "UEFI" ]; then
-  pacstrap /mnt "${BASE_PACKAGE[@]}" efibootmgr
+  pacstrap /mnt "${BASE_PACKAGES[@]}" efibootmgr
 else
-  pacstrap /mnt "${BASE_PACKAGE[@]}"
+  pacstrap /mnt "${BASE_PACKAGES[@]}"
 fi
 
 ################################################################################
@@ -298,7 +298,7 @@ usermod -aG audio,video,optical,storage $user_name
 echo -en "$user_password\n$user_password" | passwd $user_name
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
-"$grub_install_CMD"
+$grub_install_CMD
 grub-mkconfig -o /boot/grub/grub.cfg
 
 systemctl enable NetworkManager
