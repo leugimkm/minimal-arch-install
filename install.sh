@@ -142,7 +142,7 @@ rollback() {
     umount -l /mnt && echo "Unmounted /mnt successfully."
   fi
   echo "Wiping partition table on /dev/sda..."
-  if command -v sgdisk &> /dev/null; the
+  if command -v sgdisk &> /dev/null; then
     sgdisk --zap-all /dev/sda
     echo "Partition table wiped using sgdisk."
   else
