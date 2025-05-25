@@ -9,10 +9,7 @@
 #                                CONFIGURATION                                 #
 ################################################################################
 
-# Configure these variables before running the script (e.g.: nano install.sh).
-# By default the script shows the variables' valued and ask for confirmation
-# during the installation. Comment/uncomment to change the behaviour.
-
+# Modify these variables before running the script (e.g.: nano install.sh).
 readonly HOSTNAME='arch'
 readonly TIMEZONE='America/Lima'
 readonly KEYMAP='us'
@@ -21,10 +18,32 @@ user_name='bot'
 user_password='bot'
 swap_size=2
 
-# readonly SHOW=false
+# Default boot loader mode.
+# Options: "UEFI" or "BIOS"
+boot_loader='UEFI'
+
+# By default the script shows the variables' value and ask for confirmation
+# during the installation.
 readonly SHOW=true
-# readonly ASK=false
 readonly ASK=true
+
+# Essential packages: base, linux, linux-firmware, etc.
+# Add more packages as needed.
+readonly BASE_PACKAGES=(
+    base
+    base-devel
+    curl
+    git
+    grub
+    gvim
+    linux
+    linux-firmware
+    man-db
+    man-pages
+    networkmanager
+    sudo
+    ttf-dejavu
+)
 
 BLACK=$(tput setaf 0)
 RED=$(tput setaf 1)
@@ -74,12 +93,12 @@ show_settings() {
   setting "root password" $ROOT_PASSWORD
   setting "user name" $user_name
   setting "user password" $user_password
+  setting "boot loader" $boot_loader
 }
 
 ask_custom_settings() {
   read -p "Do you want to customize the installation settings? [Y/n]: " customize_install
-  if [[ $customize_install =~ ^[Yy]$ ]]
-  then
+  if [[ $customize_install =~ ^[Yy]$ ]]; then
     read -p "Enter your username: " user_name
     read -sp "Enter your password: " user_password
     echo
@@ -100,17 +119,27 @@ ask_custom_settings() {
         echo "Invalid input. Please enter an integer."
       fi
     done
+    read -p "Do you want to modify the boot loader? [Y/n]: " change_boot_loader
+    if [[ $change_boot_loader =~ ^[Yy]$ ]]; then
+      echo "Choose a boot loader:"
+      echo "1. UEFI (default)"
+      echo "2. BIOS"
+      read -p "Enter your option [1-2]: " user_option
+      if [[ $user_option == "2" ]]; then
+        boot_loader="BIOS"
+      else
+        boot_loader="UEFI"
+      fi
+    fi
   fi
 }
 
 ascii_header
 print_info "Configuration"
 
-if [ $ASK = true ]
-then
+if [ $ASK = true ]; then
   while true; do
-    if [ $SHOW = true ]
-    then
+    if [ $SHOW = true ]; then
       show_settings
     fi
     echo "Choose an option:"
@@ -121,8 +150,7 @@ then
     case $option in
       1)
         read -p 'Are you sure to continue with these settings? [Y/n]: ' ok
-        if [ $ok = 'y' ] || [ $ok == 'Y' ]
-        then
+        if [ $ok = 'y' ] || [ $ok == 'Y' ]; then
           break
         fi
         ;;
@@ -139,69 +167,117 @@ then
   done
 fi
 
-print_info "Starting 'Minimal Arch Installer'..."
+print_info "Starting 'Minimal Arch Installer'"
 
-loadkeys "$KEYMAP"        # Set the consoloe keyboad layout, 'en' by default
+################################################################################
+#                               PRE-INSTALLATION                               #
+################################################################################
+
+loadkeys "$KEYMAP"        # Set the console keyboard layout, 'en' by default
 timedatectl set-ntp true  # Update the system clock
-# ---------------------------------------------------------- Partition the disks
-# This will create and format partitions as:
-# /dev/sda1 - 512 Mib as boot
-# /dev/sda2 - 2 Gib as swap
-# /dev/sda3 - rest of space as /
-sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
-  g # new GPT disklabel
-  n # new partition
-  1 # partition number 1
-    # default - start at beginning of disk 
-  +550M # 550 MB boot parttion
-  n # new partition
-  2 # partion number 2
-    # default, start immediately after preceding partition
-  +${swap_size}G # swap parttion, 2GB by default
-  n # new partition
-  3 # partion number 3
-    # default, start immediately after preceding partition
-    # default, extend partition to end of disk
-  t # change partition type
-  1 # bootable partition
-  1 # EFI system
-  t # change partition type
-  2 # swap partition
-  19 # linuxswap
-  w # write the partition table
-  q # and we're done
+
+if [ "$boot_loader"="UEFI" ]; then
+  # ----------------------------------------------- Partition the disks for UEFI
+  # This will create and format partitions as:
+  # /dev/sda1 - 550 MB as boot
+  # /dev/sda2 - 2 GB (by default) as swap
+  # /dev/sda3 - rest of space as /
+  # ----------------------------------------------------------------------------
+  sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
+g               # Create a new GPT disklabel
+n               # Create a new partition
+1               # Partition number 1
+                # First sector: default - 2048, beginning of the disk
++550M           # Last sector: 550 MB for the boot partition
+n               # Create a new partition
+2               # Partition number 2
+                # First sector: default - start after preceding partition
++${swap_size}G  # Last sector: size of the swap partition
+n               # Create a new partition
+3               # Partition number 3
+                # First sector: default - start after preceding partition
+                # Last sector: default - extend partition to the end of the disk
+t               # Change a partition type
+1               # Select partition number 1
+1               # Set type: EFI system
+t               # Change a partition type
+2               # Select partition number 2
+19              # Select type: Linux swap
+w               # Write the partition table to disk
+q               # Quit fdisk
 EOF
-# -------------------------------------------------------- Format the partitions
-mkfs.fat -F32 /dev/sda1
-mkswap /dev/sda2
-swapon /dev/sda2
-mkfs.ext4 /dev/sda3
-# ------------------------------------------------------- Mount the file systems
-mount /dev/sda3 /mnt
-mkdir /mnt/efi
-mount /dev/sda1 /mnt/efi
-# ------------------------ Install linux kernel, firmware and essential packages
-print_info "Installing"
+else
+  # ----------------------------------------------- Partition the disks for BIOS
+  # This will create and format partitions as:
+  # /dev/sda1 - 2 GB (by default) as swap
+  # /dev/sda2 - rest of space as /
+  # ----------------------------------------------------------------------------
+  sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
+o               # Create a new DOS disklabel
+n               # Create a new partition
+e               # Partition type: extended
+1               # Partition number 1
+                # First sector: default - 2048, beginning of the disk
++${swap_size}G  # Last sector: size of the swap partition
+n               # Create a new partition
+p               # Primary partition
+2               # Partition number 2
+                # First sector: default - start after preceding partition
+                # Last sector: default - extend partition to the end of the disk
+t               # Change a partition type
+1               # Select partition number 1
+82              # Set type: Linux swap
+t               # Change a partition type
+2               # Select partition number 2
+83              # Select type: Linux
+a               # Toggle a bootable flag
+2               # Partition number 2 as bootable
+w               # Write the partition table to disk
+q               # Quit fdisk
+EOF
+fi
+
+if [ "$boot_loader" = "UEFI" ]; then
+  mkfs.ext4 /dev/sda3
+  mkswap /dev/sda2
+  mkfs.fat -F32 /dev/sda1
+  mount /dev/sda3 /mnt
+  mount --mkdir /dev/sda1 /mnt/efi
+  swapon /dev/sda2
+else
+  mkfs.ext4 /dev/sda2
+  mkswap /dev/sda1
+  mount /dev/sda2 /mnt
+  swapon /dev/sda1
+fi
+
+################################################################################
+#                                 INSTALLATION                                 #
+################################################################################
+
+print_info "Installing linux kernel, firmware and essential packages"
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 yes | pacman -Sy archlinux-keyring
-pacstrap /mnt base \
-  base-devel \
-  linux \
-  linux-firmware \
-  grub \
-  efibootmgr \
-  networkmanager \
-  sudo \
-  git \
-  gvim \
-  curl \
-  man-db \
-  man-pages \
-  ttf-dejavu \
-# -------------------------------------------------------- Generate a fstab file
+
+if [ "$boot_loader" = "UEFI" ]; then
+  pacstrap -K /mnt "${BASE_PACKAGE[@]}" efibootmgr
+else
+  pacstrap -K /mnt "${BASE_PACKAGE[@]}"
+fi
+
+################################################################################
+#                             CONFIGURE THE SYSTEM                             #
+################################################################################
+
+print_info "Configuring the system"
 genfstab -U /mnt >> /mnt/etc/fstab
-# ------------------------------------------------------- Configuring new system
-print_info "Configuring new system"
+
+if [ "$boot_loader" = "UEFI" ]; then
+  grub_install_CMD="grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
+else
+  grub_install_CMD="grub-install --target=i386pc /dev/sda --recheck"
+fi
+
 arch-chroot /mnt /bin/bash <<EOF
 
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
@@ -222,27 +298,24 @@ usermod -aG audio,video,optical,storage $user_name
 echo -en "$user_password\n$user_password" | passwd $user_name
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
-grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck
+$grub_install_CMD
 grub-mkconfig -o /boot/grub/grub.cfg
 
 systemctl enable NetworkManager
 EOF
 
-# ------------------------------------------------------------ Post-installation
+# ------------------------------------------------- Post-installation (optional)
 print_info "Post-installation"
-
 read -p "Do you want to download the post-install script? [Y/n]: " download_post_install
-
 arch-chroot /mnt /bin/bash <<EOF
-if [[ $download_post_install =~ ^[Yy]$ ]]
-then
+if [[ $download_post_install =~ ^[Yy]$ ]]; then
     curl -L -o /home/$user_name/post-install.sh \
         https://github.com/leugimkm/minimal-arch-install/raw/main/post-install.sh
     chmod +x /home/$user_name/post-install.sh
     chown $user_name:$user_name /home/$user_name/post-install.sh
 fi
 EOF
+# ------------------------------------------------------------------------------
 
 umount -l /mnt
-
 print_info "Installation has completed. Please reboot!"
