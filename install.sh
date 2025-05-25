@@ -260,9 +260,9 @@ echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacma
 yes | pacman -Sy archlinux-keyring
 
 if [ "$boot_loader" = "UEFI" ]; then
-  pacstrap -K /mnt "${BASE_PACKAGE[@]}" efibootmgr
+  pacstrap /mnt "${BASE_PACKAGE[@]}" efibootmgr
 else
-  pacstrap -K /mnt "${BASE_PACKAGE[@]}"
+  pacstrap /mnt "${BASE_PACKAGE[@]}"
 fi
 
 ################################################################################
