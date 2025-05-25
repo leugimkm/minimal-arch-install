@@ -5,6 +5,10 @@
 # Repository:
 # https://github.com/leugimkm/minimal-arch-install
 
+set -o errexit
+set -o nounset
+set -o pipefail
+
 ################################################################################
 #                                CONFIGURATION                                 #
 ################################################################################
@@ -17,10 +21,7 @@ readonly ROOT_PASSWORD='root'
 user_name='bot'
 user_password='bot'
 swap_size=2
-
-# Default boot loader mode.
-# Options: "UEFI" or "BIOS"
-boot_loader='UEFI'
+boot_loader='BIOS'  # BIOS or UEFI
 
 # By default the script shows the variables' value and ask for confirmation
 # during the installation.
@@ -97,7 +98,8 @@ show_settings() {
 }
 
 ask_custom_settings() {
-  read -p "Do you want to customize the installation settings? [Y/n]: " customize_install
+  read -p "Do you want to customize the installation settings? [Y/n]: " \
+    customize_install
   if [[ $customize_install =~ ^[Yy]$ ]]; then
     read -p "Enter your username: " user_name
     read -sp "Enter your password: " user_password
@@ -122,10 +124,10 @@ ask_custom_settings() {
     read -p "Do you want to modify the boot loader? [Y/n]: " change_boot_loader
     if [[ $change_boot_loader =~ ^[Yy]$ ]]; then
       echo "Choose a boot loader:"
-      echo "1. UEFI (default)"
-      echo "2. BIOS"
+      echo "1. BIOS (default)"
+      echo "2. UEFI"
       read -p "Enter your option [1-2]: " user_option
-      if [[ $user_option == "2" ]]; then
+      if [[ $user_option == "1" ]]; then
         boot_loader="BIOS"
       else
         boot_loader="UEFI"
@@ -133,6 +135,31 @@ ask_custom_settings() {
     fi
   fi
 }
+
+rollback() {
+  echo "${RED}Executing rollback ${RESET}"
+  if mountpoint -q /mnt; then
+    umount -l /mnt && echo "Unmounted /mnt successfully."
+  fi
+  echo "Wiping partition table on /dev/sda..."
+  if command -v sgdisk &> /dev/null; the
+    sgdisk --zap-all /dev/sda
+    echo "Partition table wiped using sgdisk."
+  else
+    dd if=/dev/zeo of=/dev/sda bs=512 count=1
+    echo "Partition table wiped using dd."
+  fi
+}
+
+error_exit() {
+  echo "${RED}An error ocurred during the installation...${RESET}"
+  read -p "Do you want to execute a rollback? [Y/n]: " response
+  if [[ $response =~ ^[yy]$ ]]; then
+    rollback
+  fi
+  exit 1
+}
+trap error_exit ERR
 
 ascii_header
 print_info "Configuration"
@@ -176,7 +203,36 @@ print_info "Starting 'Minimal Arch Installer'"
 loadkeys "$KEYMAP"        # Set the console keyboard layout, 'en' by default
 timedatectl set-ntp true  # Update the system clock
 
-if [ "$boot_loader" = "UEFI" ]; then
+if [ "$boot_loader" = "BIOS" ]; then
+  # ----------------------------------------------- Partition the disks for BIOS
+  # This will create and format partitions as:
+  # /dev/sda1 - 2 GB (by default) as swap
+  # /dev/sda2 - rest of space as /
+  # ----------------------------------------------------------------------------
+  sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
+o               # Create a new DOS disklabel
+n               # Create a new partition
+e               # Partition type: extended
+1               # Partition number 1
+                # First sector: default - 2048, beginning of the disk
++${swap_size}G  # Last sector: size of the swap partition
+n               # Create a new partition
+p               # Primary partition
+2               # Partition number 2
+                # First sector: default - start after preceding partition
+                # Last sector: default - extend partition to the end of the disk
+t               # Change a partition type
+1               # Select partition number 1
+82              # Set type: Linux swap
+t               # Change a partition type
+2               # Select partition number 2
+83              # Select type: Linux
+a               # Toggle a bootable flag
+2               # Partition number 2 as bootable
+w               # Write the partition table to disk
+q               # Quit fdisk
+EOF
+else
   # ----------------------------------------------- Partition the disks for UEFI
   # This will create and format partitions as:
   # /dev/sda1 - 550 MB as boot
@@ -206,49 +262,20 @@ t               # Change a partition type
 w               # Write the partition table to disk
 q               # Quit fdisk
 EOF
-else
-  # ----------------------------------------------- Partition the disks for BIOS
-  # This will create and format partitions as:
-  # /dev/sda1 - 2 GB (by default) as swap
-  # /dev/sda2 - rest of space as /
-  # ----------------------------------------------------------------------------
-  sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
-o               # Create a new DOS disklabel
-n               # Create a new partition
-e               # Partition type: extended
-1               # Partition number 1
-                # First sector: default - 2048, beginning of the disk
-+${swap_size}G  # Last sector: size of the swap partition
-n               # Create a new partition
-p               # Primary partition
-2               # Partition number 2
-                # First sector: default - start after preceding partition
-                # Last sector: default - extend partition to the end of the disk
-t               # Change a partition type
-1               # Select partition number 1
-82              # Set type: Linux swap
-t               # Change a partition type
-2               # Select partition number 2
-83              # Select type: Linux
-a               # Toggle a bootable flag
-2               # Partition number 2 as bootable
-w               # Write the partition table to disk
-q               # Quit fdisk
-EOF
 fi
 
-if [ "$boot_loader" = "UEFI" ]; then
+if [ "$boot_loader" = "BIOS" ]; then
+  mkfs.ext4 /dev/sda2
+  mkswap /dev/sda1
+  mount /dev/sda2 /mnt
+  swapon /dev/sda1
+else
   mkfs.ext4 /dev/sda3
   mkswap /dev/sda2
   mkfs.fat -F32 /dev/sda1
   mount /dev/sda3 /mnt
   mount --mkdir /dev/sda1 /mnt/efi
   swapon /dev/sda2
-else
-  mkfs.ext4 /dev/sda2
-  mkswap /dev/sda1
-  mount /dev/sda2 /mnt
-  swapon /dev/sda1
 fi
 
 ################################################################################
@@ -256,7 +283,8 @@ fi
 ################################################################################
 
 print_info "Installing linux kernel, firmware and essential packages"
-echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
+echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> \
+  /etc/pacman.d/mirrorlist
 yes | pacman -Sy archlinux-keyring
 
 if [ "$boot_loader" = "UEFI" ]; then
@@ -272,10 +300,11 @@ fi
 print_info "Configuring the system"
 genfstab -U /mnt >> /mnt/etc/fstab
 
-if [ "$boot_loader" = "UEFI" ]; then
-  grub_install_CMD="grub-install --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
-else
+if [ "$boot_loader" = "BIOS" ]; then
   grub_install_CMD="grub-install --target=i386-pc /dev/sda"
+else
+  grub_install_CMD="grub-install \
+  --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
 fi
 
 arch-chroot /mnt /bin/bash <<EOF
@@ -306,7 +335,8 @@ EOF
 
 # ------------------------------------------------- Post-installation (optional)
 print_info "Post-installation"
-read -p "Do you want to download the post-install script? [Y/n]: " download_post_install
+read -p "Do you want to download the post-install script? [Y/n]: " \
+  download_post_install
 arch-chroot /mnt /bin/bash <<EOF
 if [[ $download_post_install =~ ^[Yy]$ ]]; then
     curl -L -o /home/$user_name/post-install.sh \
