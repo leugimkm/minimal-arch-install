@@ -100,7 +100,7 @@ ask_custom_settings() {
   while true; do
     read -rsp "Enter your ${YELLOW}password${RESET}: " pwd1; echo
     read -rsp "${YELLOW}Confirm{$RESET} your password: " pwd2; echo
-    [[ $pwd1 == $pwd2 ]] && user_password=pwd1 && break
+    [[ $pwd1 == $pwd2 ]] && USER_PASSWORD=pwd1 && break
     echo "Passwords do not match. Please try again."
   done
   while true; do
