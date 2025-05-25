@@ -176,7 +176,7 @@ print_info "Starting 'Minimal Arch Installer'"
 loadkeys "$KEYMAP"        # Set the console keyboard layout, 'en' by default
 timedatectl set-ntp true  # Update the system clock
 
-if [ "$boot_loader"="UEFI" ]; then
+if [ "$boot_loader" = "UEFI" ]; then
   # ----------------------------------------------- Partition the disks for UEFI
   # This will create and format partitions as:
   # /dev/sda1 - 550 MB as boot
