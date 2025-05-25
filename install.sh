@@ -5,10 +5,6 @@
 # Repository:
 # https://github.com/leugimkm/minimal-arch-install
 
-set -o errexit
-set -o nounset
-set -o pipefail
-
 ################################################################################
 #                                CONFIGURATION                                 #
 ################################################################################
@@ -283,8 +279,7 @@ fi
 ################################################################################
 
 print_info "Installing linux kernel, firmware and essential packages"
-echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> \
-  /etc/pacman.d/mirrorlist
+echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 yes | pacman -Sy archlinux-keyring
 
 if [ "$boot_loader" = "UEFI" ]; then
