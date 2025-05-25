@@ -247,7 +247,8 @@ fi
 
 print_info "Installing linux kernel, firmware and essential packages"
 echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
-yes | pacman -Sy archlinux-keyring
+# yes | pacman -Sy archlinux-keyring
+pacman -Sy archlinux-keyring
 
 if [ "$BOOT_LOADER" = "UEFI" ]; then
   pacstrap /mnt "${BASE_PACKAGES[@]}" efibootmgr
@@ -260,7 +261,12 @@ fi
 ################################################################################
 
 print_info "Configuring the system"
-genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U -p /mnt >> /mnt/etc/fstab
+
+echo "Check"
+cat /mnt/etc/fstab
+read -p "Press Enter to continue..."
+echo "Continue..."
 
 if [ "$BOOT_LOADER" = "BIOS" ]; then
   grub_install_CMD="grub-install --target=i386-pc /dev/sda"
