@@ -96,11 +96,11 @@ show_settings() {
 ask_custom_settings() {
   read -rp "Do you want to customize the installation settings? [Y/n]: " answer
   [[ $answer =~ ^[Yy]$ ]] || return
-  read -p "Enter your username: " USER_NAME
+  read -p "Enter your ${YELLOW}username${RESET}: " USER_NAME
   while true; do
     read -rsp "Enter your ${YELLOW}password${RESET}: " pwd1; echo
-    read -rsp "${YELLOW}Confirm{$RESET} your password: " pwd2; echo
-    [[ $pwd1 == $pwd2 ]] && USER_PASSWORD=pwd1 && break
+    read -rsp "${YELLOW}Confirm ${RESET} your password: " pwd2; echo
+    [[ $pwd1 == $pwd2 ]] && USER_PASSWORD=${pwd1:-$USER_PASSWORD} && break
     echo "Passwords do not match. Please try again."
   done
   while true; do
