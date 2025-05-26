@@ -87,7 +87,7 @@ show_settings() {
   setting "time zone" $TIMEZONE
   setting "keymap" $KEYMAP
   setting "swap size" $SWAP_SIZE
-  setting "root password" "********"
+  setting "root password" $ROOT_PASSWORD
   setting "user name" $USER_NAME
   setting "user password" $USER_PASSWORD
   setting "boot loader" $BOOT_LOADER
@@ -99,7 +99,7 @@ ask_custom_settings() {
   read -p "Enter your ${YELLOW}username${RESET}: " USER_NAME
   while true; do
     read -rsp "Enter your ${YELLOW}password${RESET}: " pwd1; echo
-    read -rsp "${YELLOW}Confirm ${RESET} your password: " pwd2; echo
+    read -rsp "${YELLOW}Confirm${RESET} your password: " pwd2; echo
     [[ $pwd1 == $pwd2 ]] && USER_PASSWORD=${pwd1:-$USER_PASSWORD} && break
     echo "Passwords do not match. Please try again."
   done
