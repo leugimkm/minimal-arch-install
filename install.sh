@@ -131,9 +131,9 @@ rollback() {
 ascii_header
 print_info "Configuration"
 
-if [ $ASK = true ]; then
+if [[ $ASK = true ]]; then
   while true; do
-    if [ $SHOW = true ]; then
+    if [[ $SHOW = true ]]; then
       show_settings
     fi
     echo "Choose an option:"
@@ -143,8 +143,8 @@ if [ $ASK = true ]; then
     read -p 'Enter your option[1-3]: ' option
     case $option in
       1)
-        read -rp 'Are you sure to continue with these settings? [Y/n]: ' ok
-        if [ $ok = 'y' ] || [ $ok == 'Y' ]; then
+        read -rp 'Are you sure to continue with these settings? [Y/n]: ' confirm
+        if [[ $confirm =~ ^[Yy]?$ ]]; then
           break
         fi
         ;;
@@ -155,7 +155,7 @@ if [ $ASK = true ]; then
         exit 0
         ;;
       *)
-        echo "Invalid option, choose a number between 1-3"
+        echo "${RED}Invalid option${RESET}, choose a number between 1-3"
         ;;
     esac
   done
@@ -170,7 +170,7 @@ print_info "Starting 'Minimal Arch Installer'"
 loadkeys "$KEYMAP"        # Set the console keyboard layout, 'en' by default
 timedatectl set-ntp true  # Update the system clock
 
-if [ "$BOOT_LOADER" = "BIOS" ]; then
+if [[ $BOOT_LOADER = "BIOS" ]]; then
   # ----------------------------------------------- Partition the disks for BIOS
   # This will create and format partitions as:
   # /dev/sda1 - 2 GB (by default) as swap
@@ -179,7 +179,7 @@ if [ "$BOOT_LOADER" = "BIOS" ]; then
   sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
 o               # Create a new DOS disklabel
 n               # Create a new partition
-e               # Partition type: extended
+p               # Partition type: primary
 1               # Partition number 1
                 # First sector: default - 2048, beginning of the disk
 +${SWAP_SIZE}G  # Last sector: size of the swap partition
@@ -246,14 +246,16 @@ fi
 ################################################################################
 
 print_info "Installing linux kernel, firmware and essential packages"
-echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
-# yes | pacman -Sy archlinux-keyring
-pacman -Sy archlinux-keyring
+echo 'Server = https://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
+yes | pacman -Sy reflector
+reflector --latest 10 --sort rate --save /etc/pacman.d/mirrorlist
+pacman -Syyy
+yes | pacman -Sy archlinux-keyring
 
-if [ "$BOOT_LOADER" = "UEFI" ]; then
-  pacstrap /mnt "${BASE_PACKAGES[@]}" efibootmgr
+if [[ $BOOT_LOADER = "UEFI" ]]; then
+  pacstrap -K /mnt "${BASE_PACKAGES[@]}" efibootmgr
 else
-  pacstrap /mnt "${BASE_PACKAGES[@]}"
+  pacstrap -K /mnt "${BASE_PACKAGES[@]}"
 fi
 
 ################################################################################
@@ -263,12 +265,7 @@ fi
 print_info "Configuring the system"
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
-echo "Check"
-cat /mnt/etc/fstab
-read -p "Press Enter to continue..."
-echo "Continue..."
-
-if [ "$BOOT_LOADER" = "BIOS" ]; then
+if [[ $BOOT_LOADER = "BIOS" ]]; then
   grub_install_CMD="grub-install --target=i386-pc /dev/sda"
 else
   grub_install_CMD="grub-install \
@@ -280,7 +277,7 @@ arch-chroot /mnt /bin/bash <<EOF
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 hwclock --systohc
 
-echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+sed -i 's/#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
 echo "LANG=en_US.UTF-8" >> /etc/locale.conf
 locale-gen
 echo KEYMAP=$KEYMAP > /etc/vconsole.conf
@@ -310,7 +307,7 @@ if [[ $download_post_install =~ ^[Yy]$ ]]; then
     curl -L -o /home/$USER_NAME/post-install.sh \
         https://github.com/leugimkm/minimal-arch-install/raw/main/post-install.sh
     chmod +x /home/$USER_NAME/post-install.sh
-    chown $USER_NAME:$USER_NAME/home/$USER_NAME/post-install.sh
+    chown $USER_NAME:$USER_NAME /home/$USER_NAME/post-install.sh
 fi
 EOF
 # ------------------------------------------------------------------------------
