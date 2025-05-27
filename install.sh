@@ -248,7 +248,7 @@ fi
 print_info "Installing linux kernel, firmware and essential packages"
 echo 'Server = https://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 yes | pacman -Sy reflector
-reflector --latest 10 --sort rate --save /etc/pacman.d/mirrorlist
+reflector --latest 10 --protocol http,https --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Syyy
 yes | pacman -Sy archlinux-keyring
 
