@@ -40,19 +40,14 @@ readonly CYAN=$(tput setaf 6)
 readonly WHITE=$(tput setaf 7)
 readonly RESET=$'\e[0m'
 readonly COLS=$(tput cols)
-readonly GRAY0=$(tput setaf 239)
-readonly GRAY1=$(tput setaf 240)
-readonly GRAY2=$(tput setaf 241)
-readonly GRAY3=$(tput setaf 242)
-readonly GRAY4=$(tput setaf 243)
 
 ascii_header() {
   echo
-  echo " ${GRAY0} • ▌ ▄ ·. ▪   ▐ ▄  ▄▄▄· ▄▄▄  ▪   ${RESET}"
-  echo " ${GRAY1} ·██ ▐███▪██ •█▌▐█▐█ ▀█ ▀▄ █·██  ${RESET}"
-  echo " ${GRAY2} ▐█ ▌▐▌▐█·▐█·▐█▐▐▌▄█▀▀█ ▐▀▀▄ ▐█· ${RESET}"
-  echo " ${GRAY3} ██ ██▌▐█▌▐█▌██▐█▌▐█ ▪▐▌▐█•█▌▐█▌ ${RESET}"
-  echo " ${GRAY4} ▀▀  █▪▀▀▀▀▀▀▀▀ █▪ ▀  ▀ .▀  ▀▀▀▀ ${RESET}"
+  echo -e "${MAGENTA}\t\t • ▌ ▄ ·. ▪   ▐ ▄  ▄▄▄· ▄▄▄  ▪   ${RESET}"
+  echo -e "${MAGENTA}\t\t ·██ ▐███▪██ •█▌▐█▐█ ▀█ ▀▄ █·██  ${RESET}"
+  echo -e "${MAGENTA}\t\t ▐█ ▌▐▌▐█·▐█·▐█▐▐▌▄█▀▀█ ▐▀▀▄ ▐█· ${RESET}"
+  echo -e "${MAGENTA}\t\t ██ ██▌▐█▌▐█▌██▐█▌▐█ ▪▐▌▐█•█▌▐█▌ ${RESET}"
+  echo -e "${MAGENTA}\t\t ▀▀  █▪▀▀▀▀▀▀▀▀ █▪ ▀  ▀ .▀  ▀▀▀▀ ${RESET}"
   echo
 }
 
@@ -203,10 +198,10 @@ if [[ $AUTO == "true" ]]; then
 else
   while true; do
     show_settings
-    echo "Choose an option:"
-    echo "1. Continue with these settings"
-    echo "2. Modify the settings"
-    echo "3. Exit"
+    echo -e "\nChoose an option:"
+    echo -e "\t1. ${CYAN}Continue${RESET} with these settings"
+    echo -e "\t2. ${CYAN}Modify${RESET} the settings"
+    echo -e "\t3. ${CYAN}Exit${RESET}"
     read -p 'Enter your option[1-3]: ' option
     case $option in
       1)
@@ -232,12 +227,7 @@ fi
 print_info "Starting '${GREEN}MIN${RESET}imal ${GREEN}AR${RESET}ch ${GREEN}I${RESET}nstaller'"
 loadkeys "$KEYMAP"
 timedatectl set-ntp true
-
-if [[ $BOOT_LOADER = "BIOS" ]]; then
-  partition_bios
-else
-  partition_uefi
-fi
+[[ $BOOT_LOADER = "BIOS" ]] && partition_bios || partition_uefi
 
 # ----------------------------------------------------------------- Installation
 print_info "Installing ${KERNEL} kernel, firmware and essential packages"
