@@ -36,57 +36,50 @@ And finally, run the following command (see [Configure](#configure) before):
 
 ## Configure
 
-By default the script has the following configuration (also +2G for swap partition):
+By default the script has the following configuration:
 
-```bash
-readonly HOSTNAME='arch'
+```sh
+readonly AUTO=False
+readonly HOSTNAME='MinArI'
 readonly TIMEZONE='America/Lima'
+readonly LOCALE='en_US.UTF-8'
 readonly KEYMAP='us'
 readonly ROOT_PASSWORD='root'
-readonly USER_NAME='bot'
-readonly USER_PASSWORD='bot'
-
-# readonly SHOW=false
-readonly SHOW=true
-# readnly ASK=false
-readonly ASK=true
+readonly DISK='/dev/sda'
+readonly RESOLUTION='1920x1080'
+readonly KERNEL='linux'
+USER_NAME='guest'
+USER_PASSWORD='guest'
+SWAP_SIZE=2
+BOOT_LOADER='UEFI'
 ```
 
-Before running the script, you should edit `install.sh` with `nano` (`vim` isn't shipped):
+Before running the script, you should edit `install.sh` with `nano` or `vim`:
 
-```bash
-nano install.sh
+```sh
+vim install.sh
 ```
 
 and then apply changes, for example:
 
 ```bash
-readonly HOSTNAME='MyArchBox'
+readonly AUTO=True
+readonly HOSTNAME='ArchBox'
 readonly TIMEZONE='America/New_York'
-readonly KEYMAP='us'
+readonly LOCALE='es_ES.UTF-8'
+readonly KEYMAP='es'
 readonly ROOT_PASSWORD='superstrongpassword'
-readonly USER_NAME='archlover'
-readonly USER_PASSWORD='iusearchbtw'
-
-readonly SHOW=false
-# readonly SHOW=true
-readonly ASK=false
-# readonly ASK=true
+readonly DISK='/dev/nvme0n1'
+readonly RESOLUTION='2560x1440'
+readonly KERNEL='linux-lts'
+USER_NAME='archlover'
+USER_PASSWORD='iusearchbtw'
+SWAP_SIZE=4
+BOOT_LOADER='BIOS'
+readonly EXTRA_PACKAGES=(
+  sudo grub networkmanager git wget ttf-sourcecodepro-nerd xclip unzip
+)
 ```
-
-To change the size of the swap partition to +8G for example, edit line 122:
-
-```bash
-  +2G # 2 GB swap partition by default
-```
-
-to this (you can delete the comment):
-
-```bash
-  +8G # 8 GB swap partition
-```
-
-> ****TODO****: add automated post-install scripts with different flavours.
 
 ---
 

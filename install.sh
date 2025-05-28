@@ -9,7 +9,10 @@
 #                                CONFIGURATION                                 #
 ################################################################################
 
-# Modify these variables before running the script (e.g.: nano install.sh).
+# Modify these variables before running the script (e.g.: vim install.sh).
+# Set AUTO to true for automatic mode using preset values.
+# Add more packages as needed in EXTRA_PACKAGES.
+readonly AUTO=false
 readonly HOSTNAME='MinArI'
 readonly TIMEZONE='America/Lima'
 readonly LOCALE='en_US.UTF-8'
@@ -22,17 +25,9 @@ USER_NAME='guest'
 USER_PASSWORD='guest'
 SWAP_SIZE=2
 BOOT_LOADER='UEFI'  # BIOS or UEFI
-
-# By default the script shows the variables' value and ask for confirmation
-# during the installation.
-readonly SHOW=true
-readonly ASK=true
-
-# Essential packages: base, linux, linux-firmware, etc.
-# Add more packages as needed.
 readonly BASE_PACKAGES=( base base-devel "$KERNEL" linux-firmware )
 readonly EXTRA_PACKAGES=(
-    curl git grub gvim man-db man-pages networkmanager sudo ttf-dejavu
+  curl git grub gvim man-db man-pages networkmanager sudo ttf-dejavu
 )
 
 readonly BLACK=$(tput setaf 0)
@@ -45,15 +40,19 @@ readonly CYAN=$(tput setaf 6)
 readonly WHITE=$(tput setaf 7)
 readonly RESET=$'\e[0m'
 readonly COLS=$(tput cols)
+readonly GRAY0=$(tput setaf 239)
+readonly GRAY1=$(tput setaf 240)
+readonly GRAY2=$(tput setaf 241)
+readonly GRAY3=$(tput setaf 242)
+readonly GRAY4=$(tput setaf 243)
 
 ascii_header() {
-  echo " __  __ _       _                 _                     _       _____           _        _ _ "
-  echo "|  \/  (_)     (_)               | |     /\            | |     |_   _|         | |      | | |"
-  echo "| \  / |_ _ __  _ _ __ ___   __ _| |    /  \   _ __ ___| |__     | |  _ __  ___| |_ __ _| | |"
-  echo "| |\/| | | '_ \| | '_ \` _ \ / _\` | |   / /\ \ | '__/ __| '_ \    | | | '_ \/ __| __/ _\` | | |"
-  echo "| |  | | | | | | | | | | | | (_| | |  / ____ \| | | (__| | | |  _| |_| | | \__ \ || (_| | | |"
-  echo "|_|  |_|_|_| |_|_|_| |_| |_|\__,_|_| /_/    \_\_|  \___|_| |_| |_____|_| |_|___/\__\__,_|_|_|"
-  echo "============================================================================================="
+  echo
+  echo " ${GRAY0} • ▌ ▄ ·. ▪   ▐ ▄  ▄▄▄· ▄▄▄  ▪   ${RESET}"
+  echo " ${GRAY1} ·██ ▐███▪██ •█▌▐█▐█ ▀█ ▀▄ █·██  ${RESET}"
+  echo " ${GRAY2} ▐█ ▌▐▌▐█·▐█·▐█▐▐▌▄█▀▀█ ▐▀▀▄ ▐█· ${RESET}"
+  echo " ${GRAY3} ██ ██▌▐█▌▐█▌██▐█▌▐█ ▪▐▌▐█•█▌▐█▌ ${RESET}"
+  echo " ${GRAY4} ▀▀  █▪▀▀▀▀▀▀▀▀ █▪ ▀  ▀ .▀  ▀▀▀▀ ${RESET}"
   echo
 }
 
@@ -121,45 +120,8 @@ rollback() {
   echo "Rollback done!"
 }
 
-ascii_header
-print_info "Configuration"
-
-if [[ $ASK = true ]]; then
-  while true; do
-    if [[ $SHOW = true ]]; then
-      show_settings
-    fi
-    echo "Choose an option:"
-    echo "1. Continue with these settings"
-    echo "2. Modify the settings"
-    echo "3. Exit"
-    read -p 'Enter your option[1-3]: ' option
-    case $option in
-      1)
-        read -rp 'Are you sure to continue with these settings? [Y/n]: ' confirm
-        if [[ $confirm =~ ^[Yy]?$ ]]; then
-          break
-        fi
-        ;;
-      2)
-        ask_custom_settings
-        ;;
-      3)
-        exit 0
-        ;;
-      *)
-        echo "${RED}Invalid option${RESET}, choose a number between 1-3"
-        ;;
-    esac
-  done
-fi
-
-# ------------------------------------------------------------- Pre-Installation
-print_info "Starting 'Minimal Arch Installer'"
-loadkeys "$KEYMAP"        # Set the console keyboard layout, 'en' by default
-timedatectl set-ntp true  # Update the system clock
-
-if [[ $BOOT_LOADER = "BIOS" ]]; then
+partition_bios() {
+  print_info "Partitioning for ${CYAN}BIOS${RESET} on $DISK"
   # ----------------------------------------------- Partition the disks for BIOS
   # This will create and format partitions as:
   # ${DISK}1 - 2 GB (by default) as swap
@@ -192,7 +154,10 @@ EOF
   mkswap "${DISK}"1
   mount "${DISK}2" /mnt
   swapon "${DISK}1"
-else
+}
+
+partition_uefi() {
+  print_info "Partitioning for ${CYAN}UEFI${RESET} on $DISK"
   # ----------------------------------------------- Partition the disks for UEFI
   # This will create and format partitions as:
   # ${DISK}1 - 550 MB as boot
@@ -228,6 +193,50 @@ EOF
   mount "${DISK}3" /mnt
   mount --mkdir "${DISK}1" /mnt/efi
   swapon "${DISK}2"
+}
+# ------------------------------------------------------------------------ Start
+ascii_header
+print_info "Configuration"
+
+if [[ $AUTO == "true" ]]; then
+  echo "${GREEN}Automatic mode enabled. Using preset values.${RESET}"
+else
+  while true; do
+    show_settings
+    echo "Choose an option:"
+    echo "1. Continue with these settings"
+    echo "2. Modify the settings"
+    echo "3. Exit"
+    read -p 'Enter your option[1-3]: ' option
+    case $option in
+      1)
+        read -rp 'Are you sure to continue with these settings? [Y/n]: ' confirm
+        if [[ $confirm =~ ^[Yy]?$ ]]; then
+          break
+        fi
+        ;;
+      2)
+        ask_custom_settings
+        ;;
+      3)
+        exit 0
+        ;;
+      *)
+        echo "${RED}Invalid option${RESET}, choose a number between 1-3"
+        ;;
+    esac
+  done
+fi
+
+# ------------------------------------------------------------- Pre-Installation
+print_info "Starting '${GREEN}MIN${RESET}imal ${GREEN}AR${RESET}ch ${GREEN}I${RESET}nstaller'"
+loadkeys "$KEYMAP"
+timedatectl set-ntp true
+
+if [[ $BOOT_LOADER = "BIOS" ]]; then
+  partition_bios
+else
+  partition_uefi
 fi
 
 # ----------------------------------------------------------------- Installation
@@ -238,10 +247,10 @@ reflector --latest 10 --protocol http,https --sort rate --save /etc/pacman.d/mir
 pacman -Syyy
 yes | pacman -Sy archlinux-keyring
 
-if [[ $BOOT_LOADER = "UEFI" ]]; then
-  pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}" efibootmgr
-else
+if [[ $BOOT_LOADER = "BIOS" ]]; then
   pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}"
+else
+  pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}" efibootmgr
 fi
 
 # --------------------------------------------------------- Configure the system
