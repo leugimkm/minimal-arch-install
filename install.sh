@@ -42,16 +42,16 @@ readonly BASE_PACKAGES=(
     ttf-dejavu
 )
 
-BLACK=$(tput setaf 0)
-RED=$(tput setaf 1)
-GREEN=$(tput setaf 2)
-YELLOW=$(tput setaf 3)
-BLUE=$(tput setaf 4)
-MAGENTA=$(tput setaf 5)
-CYAN=$(tput setaf 6)
-WHITE=$(tput setaf 7)
-RESET=$'\e[0m'
-COLS=$(tput cols)
+readonly BLACK=$(tput setaf 0)
+readonly RED=$(tput setaf 1)
+readonly GREEN=$(tput setaf 2)
+readonly YELLOW=$(tput setaf 3)
+readonly BLUE=$(tput setaf 4)
+readonly MAGENTA=$(tput setaf 5)
+readonly CYAN=$(tput setaf 6)
+readonly WHITE=$(tput setaf 7)
+readonly RESET=$'\e[0m'
+readonly COLS=$(tput cols)
 
 ascii_header() {
   echo " __  __ _       _                 _                     _       _____           _        _ _ "
@@ -305,7 +305,7 @@ read -p "Do you want to download the post-install script? [Y/n]: " \
 arch-chroot /mnt /bin/bash <<EOF
 if [[ $download_post_install =~ ^[Yy]$ ]]; then
     curl -L -o /home/$USER_NAME/post-install.sh \
-        https://github.com/leugimkm/minimal-arch-install/raw/main/post-install.sh
+        https://github.com/leugimkm/minimal-arch-install/raw/dev/post-install.sh
     chmod +x /home/$USER_NAME/post-install.sh
     chown $USER_NAME:$USER_NAME /home/$USER_NAME/post-install.sh
 fi
