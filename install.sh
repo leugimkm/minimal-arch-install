@@ -10,12 +10,16 @@
 ################################################################################
 
 # Modify these variables before running the script (e.g.: nano install.sh).
-readonly HOSTNAME='arch'
+readonly HOSTNAME='MinArI'
 readonly TIMEZONE='America/Lima'
+readonly LOCALE='en_US.UTF-8'
 readonly KEYMAP='us'
 readonly ROOT_PASSWORD='root'
-USER_NAME='bot'
-USER_PASSWORD='bot'
+readonly DISK='/dev/sda'
+readonly RESOLUTION='1920x1080'
+readonly KERNEL='linux'
+USER_NAME='guest'
+USER_PASSWORD='guest'
 SWAP_SIZE=2
 BOOT_LOADER='UEFI'  # BIOS or UEFI
 
@@ -26,20 +30,9 @@ readonly ASK=true
 
 # Essential packages: base, linux, linux-firmware, etc.
 # Add more packages as needed.
-readonly BASE_PACKAGES=(
-    base
-    base-devel
-    curl
-    git
-    grub
-    gvim
-    linux
-    linux-firmware
-    man-db
-    man-pages
-    networkmanager
-    sudo
-    ttf-dejavu
+readonly BASE_PACKAGES=( base base-devel "$KERNEL" linux-firmware )
+readonly EXTRA_PACKAGES=(
+    curl git grub gvim man-db man-pages networkmanager sudo ttf-dejavu
 )
 
 readonly BLACK=$(tput setaf 0)
@@ -119,13 +112,13 @@ ask_custom_settings() {
 rollback() {
   echo "${RED}Rolling back...${RESET}"
   mountpoint -q /mnt && umount -l /mnt || true
-  echo "Wiping partition table on /dev/sda..."
-  if command -v sgdisk &> /dev/null; then
-    sgdisk --zap-all /dev/sda
+  echo "Wiping partition table on $DISK..."
+  if command -v sgdisk &>/dev/null; then
+    sgdisk --zap-all "$DISK"
   else
-    dd if=/dev/zero of=/dev/sda bs=512 count=1 conv=notrunc
+    dd if=/dev/zero of="$DISK" bs=512 count=1 conv=notrunc
   fi
-  echo "Done."
+  echo "Rollback done!"
 }
 
 ascii_header
@@ -161,22 +154,18 @@ if [[ $ASK = true ]]; then
   done
 fi
 
+# ------------------------------------------------------------- Pre-Installation
 print_info "Starting 'Minimal Arch Installer'"
-
-################################################################################
-#                               PRE-INSTALLATION                               #
-################################################################################
-
 loadkeys "$KEYMAP"        # Set the console keyboard layout, 'en' by default
 timedatectl set-ntp true  # Update the system clock
 
 if [[ $BOOT_LOADER = "BIOS" ]]; then
   # ----------------------------------------------- Partition the disks for BIOS
   # This will create and format partitions as:
-  # /dev/sda1 - 2 GB (by default) as swap
-  # /dev/sda2 - rest of space as /
+  # ${DISK}1 - 2 GB (by default) as swap
+  # ${DISK}2 - rest of space as /
   # ----------------------------------------------------------------------------
-  sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
+  sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk "$DISK"
 o               # Create a new DOS disklabel
 n               # Create a new partition
 p               # Partition type: primary
@@ -199,18 +188,18 @@ a               # Toggle a bootable flag
 w               # Write the partition table to disk
 q               # Quit fdisk
 EOF
-  mkfs.ext4 /dev/sda2
-  mkswap /dev/sda1
-  mount /dev/sda2 /mnt
-  swapon /dev/sda1
+  mkfs.ext4 "${DISK}"2
+  mkswap "${DISK}"1
+  mount "${DISK}2" /mnt
+  swapon "${DISK}1"
 else
   # ----------------------------------------------- Partition the disks for UEFI
   # This will create and format partitions as:
-  # /dev/sda1 - 550 MB as boot
-  # /dev/sda2 - 2 GB (by default) as swap
-  # /dev/sda3 - rest of space as /
+  # ${DISK}1 - 550 MB as boot
+  # ${DISK}2 - 2 GB (by default) as swap
+  # ${DISK}3 - rest of space as /
   # ----------------------------------------------------------------------------
-  sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
+  sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk "$DISK"
 g               # Create a new GPT disklabel
 n               # Create a new partition
 1               # Partition number 1
@@ -233,19 +222,16 @@ t               # Change a partition type
 w               # Write the partition table to disk
 q               # Quit fdisk
 EOF
-  mkfs.fat -F32 /dev/sda1
-  mkswap /dev/sda2
-  mkfs.ext4 /dev/sda3
-  mount /dev/sda3 /mnt
-  mount --mkdir /dev/sda1 /mnt/efi
-  swapon /dev/sda2
+  mkfs.fat -F32 "${DISK}1"
+  mkswap "${DISK}2"
+  mkfs.ext4 "${DISK}3"
+  mount "${DISK}3" /mnt
+  mount --mkdir "${DISK}1" /mnt/efi
+  swapon "${DISK}2"
 fi
 
-################################################################################
-#                                 INSTALLATION                                 #
-################################################################################
-
-print_info "Installing linux kernel, firmware and essential packages"
+# ----------------------------------------------------------------- Installation
+print_info "Installing ${KERNEL} kernel, firmware and essential packages"
 echo 'Server = https://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
 yes | pacman -Sy reflector
 reflector --latest 10 --protocol http,https --sort rate --save /etc/pacman.d/mirrorlist
@@ -253,20 +239,17 @@ pacman -Syyy
 yes | pacman -Sy archlinux-keyring
 
 if [[ $BOOT_LOADER = "UEFI" ]]; then
-  pacstrap -K /mnt "${BASE_PACKAGES[@]}" efibootmgr
+  pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}" efibootmgr
 else
-  pacstrap -K /mnt "${BASE_PACKAGES[@]}"
+  pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}"
 fi
 
-################################################################################
-#                             CONFIGURE THE SYSTEM                             #
-################################################################################
-
+# --------------------------------------------------------- Configure the system
 print_info "Configuring the system"
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
 if [[ $BOOT_LOADER = "BIOS" ]]; then
-  grub_install_CMD="grub-install --target=i386-pc /dev/sda"
+  grub_install_CMD="grub-install --target=i386-pc $DISK"
 else
   grub_install_CMD="grub-install \
   --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
@@ -277,8 +260,8 @@ arch-chroot /mnt /bin/bash <<EOF
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 hwclock --systohc
 
-sed -i 's/#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
-echo "LANG=en_US.UTF-8" >> /etc/locale.conf
+sed -i 's/#${LOCALE}/${LOCALE}/' /etc/locale.gen
+echo "LANG=${LOCALE}" >> /etc/locale.conf
 locale-gen
 echo KEYMAP=$KEYMAP > /etc/vconsole.conf
 
@@ -292,6 +275,7 @@ usermod -aG audio,video,optical,storage $USER_NAME
 echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_NAME
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
+sed -i 's/^#GRUB_GFXMODE=.*/GRUB_GFXMODE=${RESOLUTION}/' /etc/default/grub
 $grub_install_CMD
 grub-mkconfig -o /boot/grub/grub.cfg
 
