@@ -189,6 +189,26 @@ EOF
   mount --mkdir "${DISK}1" /mnt/efi
   swapon "${DISK}2"
 }
+for arg in "$@"; do
+  case "$arg" in
+    --auto)
+      AUTO="true"
+      ;;
+    --config)
+      AUTO="false"
+      CONFIG_FORCE="true"
+      ;;
+    *)
+      echo "Unknown option: $arg" >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ "${AUTO}" == "true" && "${CONFIG_FORCE:-false}" == "true" ]]; then
+  echo "Cannot use --auto and --config simultaneously." >&2
+  exit 1
+fi
 # ------------------------------------------------------------------------ Start
 ascii_header
 print_info "Configuration"
