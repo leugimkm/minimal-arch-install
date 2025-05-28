@@ -124,12 +124,17 @@ rollback() {
     echo "Unmounting /mnt recursively..."
     umount -R /mnt || true
   fi
+  sync
+  echo "Erasing filesystem signatures on $DISK..."
+  wipefs -a "$DISK" || true
+
   echo "Wiping partition table on $DISK..."
   if command -v sgdisk &>/dev/null; then
     sgdisk --zap-all "$DISK"
   else
     dd if=/dev/zero of="$DISK" bs=512 count=1 conv=notrunc
   fi
+  partprobe "$DISK" || true
   echo "Rollback done!"
 }
 
