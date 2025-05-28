@@ -12,7 +12,7 @@
 # Modify these variables before running the script (e.g.: vim install.sh).
 # Set AUTO to true for automatic mode using preset values.
 # Add more packages as needed in EXTRA_PACKAGES.
-readonly AUTO=false
+AUTO=false
 readonly HOSTNAME='MinArI'
 readonly TIMEZONE='America/Lima'
 readonly LOCALE='en_US.UTF-8'
@@ -105,7 +105,25 @@ ask_custom_settings() {
 
 rollback() {
   echo "${RED}Rolling back...${RESET}"
-  mountpoint -q /mnt && umount -l /mnt || true
+  if mountpoint -q /mnt/efi; then
+    echo "Unmounting /mnt/efi..."
+    umount -l /mnt/efi || true
+  fi
+  if [[ $BOOT_LOADER == "BIOS" ]]; then
+    if grep -q "^${DISK}1" /proc/swaps; then
+      echo "Disabling swap on ${DISK}1..."
+      swapoff "${DISK}1" || true
+    fi
+  elif [[ $BOOT_LOADER == "UEFI" ]]; then
+    if grep -q "^${DISK}2" /proc/swaps; then
+      echo "Disabling swap on ${DISK}2..."
+      swapoff "${DISK}2" || true
+    fi
+  fi
+  if mountpoint -q /mnt; then
+    echo "Unmounting /mnt recursively..."
+    umount -R /mnt || true
+  fi
   echo "Wiping partition table on $DISK..."
   if command -v sgdisk &>/dev/null; then
     sgdisk --zap-all "$DISK"
