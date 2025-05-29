@@ -171,6 +171,10 @@ parse_args() {
         ;;
     esac
   done
+  if [[ "${AUTO}" == "true" && "${CONFIG_FORCE:-false}" == "true" ]]; then
+    echo "Cannot use --auto and --config simultaneously." >&2
+    exit 1
+  fi
 }
 
 rollback() {
@@ -197,7 +201,6 @@ rollback() {
   sync
   echo "Erasing filesystem signatures on $DISK..."
   wipefs -a "$DISK" || true
-
   echo "Wiping partition table on $DISK..."
   if command -v sgdisk &>/dev/null; then
     sgdisk --zap-all "$DISK"
@@ -206,6 +209,24 @@ rollback() {
   fi
   partprobe "$DISK" || true
   echo "Rollback done!"
+}
+
+verify_boot_mode() {
+  if [ -f "/sys/firmware/efi/fw_platform_size" ]; then
+    local efi_size
+    efi_size=$(cat /sys/firmware/efi/fw_platform_size)
+    echo -e "${GREEN}System is booted in UEFI mode (${efi_size}-bit).${RESET}"
+    if [ "$BOOT_LOADER" != "UEFI" ]; then
+      echo - e "Adjusting boot loader to ${YELLOW}UEFI.${RESET}"
+      BOOT_LOADER="UEFI"
+    fi
+  else
+    echo -e "${GREEN}System is booted in BIOS (or CSM) mode.${RESET}"
+    if [ "$BOOT_LOADER" != "BIOS" ]; then
+      echo - e "Adjusting boot loader to ${YELLOW}BIOS.${RESET}"
+      BOOT_LOADER="BIOS"
+    fi
+  fi
 }
 
 partition_bios() {
@@ -287,6 +308,7 @@ pre_installation() {
   print_info "Pre-installation"
   loadkeys "$KEYMAP"
   timedatectl set-ntp true
+  verify_boot_mode
   [[ $BOOT_LOADER = "BIOS" ]] && partition_bios || partition_uefi
 }
 
@@ -346,10 +368,10 @@ post_installation() {
     download_post_install
   arch-chroot /mnt /bin/bash <<EOF
 if [[ $download_post_install =~ ^[Yy]$ ]]; then
-    curl -L -o /home/$USER_NAME/post-install.sh \
-        https://github.com/leugimkm/minimal-arch-install/raw/dev/post-install.sh
-    chmod +x /home/$USER_NAME/post-install.sh
-    chown $USER_NAME:$USER_NAME /home/$USER_NAME/post-install.sh
+  curl -L -o /home/$USER_NAME/post-install.sh \
+    https://github.com/leugimkm/minimal-arch-install/raw/dev/post-install.sh
+  chmod +x /home/$USER_NAME/post-install.sh
+  chown $USER_NAME:$USER_NAME /home/$USER_NAME/post-install.sh
 fi
 EOF
 }
@@ -357,17 +379,13 @@ EOF
 main() {
   clear
   parse_args "$@"
-  if [[ "${AUTO}" == "true" && "${CONFIG_FORCE:-false}" == "true" ]]; then
-    echo "Cannot use --auto and --config simultaneously." >&2
-    exit 1
-  fi
   setup_configuration
   print_info "${CYAN}MIN${RESET}imal ${CYAN}AR${RESET}ch ${CYAN}I${RESET}nstaller"
   pre_installation
   installation
   configure_system
   post_installation
-  umount -l /mnt
+  umount -R /mnt
   print_info "Installation has completed. Please reboot!"
 }
 
