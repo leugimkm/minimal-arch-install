@@ -357,6 +357,7 @@ EOF
 }
 
 main() {
+  clear
   parse_args "$@"
   if [[ "${AUTO}" == "true" && "${CONFIG_FORCE:-false}" == "true" ]]; then
     echo "Cannot use --auto and --config simultaneously." >&2
