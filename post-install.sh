@@ -17,6 +17,7 @@ readonly WHITE=$(tput setaf 7)
 readonly RESET=$'\e[0m'
 readonly COLS=$(tput cols)
 
+INTERACTIVE="false"
 DOWNGRADE="true"
 DOTFILES_REPO="https://github.com/leugimkm/dotfiles"
 DOTFILES_DIR="$HOME/dotfiles"
@@ -92,10 +93,61 @@ setup_dotfiles() {
   source ~/.bashrc
 }
 
+show_menu() {
+  clear
+  print_info "ARCH POST-INSTALL MENU"
+  echo "1. Install packages"
+  echo "2. Setup dotfiles"
+  echo "3. Downgrade packages"
+  echo "4. Select multiple options"
+  echo "5. Exit"
+
+  read -p "Enter your choice [1-5]: " choice
+  case $choice in
+    1) install_packages ;;
+    2) setup_dotfiles ;;
+    3) downgrade_packages ;;
+    4) select_multiple ;;
+    5) exit 0 ;;
+    *) echo -e "${RED}Invalid option!${RESET}" && sleep 1 ;;
+  esac
+}
+
+select_multiple() {
+  clear
+  print_info "SELECT MULTIPLE OPTIONS"
+  echo "Enter numbers separated by commas (e.g., 1,2,3)"
+  echo "1. Install packages"
+  echo "2. Setup dotfiles"
+  echo "3. Downgrade packages"
+  echo "4. Return to main menu"
+
+  read -p "Your selections: " selections
+  IFS=',' read -ra options <<< "$selections"
+
+  for option in "${options[@]}"; do
+    case $option in
+      1) install_packages ;;
+      2) setup_dotfiles ;;
+      3) downgrade_packages ;;
+      4) return ;;
+      *) echo -e "${RED}Invalid option: $option${RESET}" ;;
+    esac
+  done
+}
+
 main() {
-  install_packages
-  setup_dotfiles
-  [[ $DOWNGRADE == "true" ]] && downgrade_packages
+  if [[ "$INTERACTIVE" == "false" ]]; then
+    install_packages
+    setup_dotfiles
+    [[ "$DOWNGRADE" == "true" ]] && downgrade_packages
+    print_info "All tasks completed automatically!"
+    exit 0
+  fi
+  while true; do
+    show_menu
+    read -n1 -p "Press any key to continue..."
+  done
 }
 
 main "$@"
