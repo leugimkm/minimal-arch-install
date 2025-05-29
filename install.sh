@@ -221,6 +221,12 @@ for arg in "$@"; do
       AUTO="false"
       CONFIG_FORCE="true"
       ;;
+    --bios)
+      BOOT_LOADER="BIOS"
+      ;;
+    --uefi)
+      BOOT_LOADER="UEFI"
+      ;;
     *)
       echo "Unknown option: $arg" >&2
       exit 1
