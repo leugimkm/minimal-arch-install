@@ -12,6 +12,7 @@
 # Modify these variables before running the script (e.g.: vim install.sh).
 INTERACTIVE=true
 DOWNGRADE=true
+VIRTUAL_MACHINE=true
 readonly DOTFILES_REPO="https://github.com/leugimkm/dotfiles"
 readonly DOTFILES_DIR="$HOME/dotfiles"
 readonly PKGS_TO_DOWNGRADE=(
@@ -42,7 +43,7 @@ print_info_line() {
   echo "${GREEN} ${1}${RESET}"
 }
 
-print_info() {
+print_header() {
   local title="$1"
   local line_length=${COLS:-80}
   local padding=$(( (line_length - ${#title} - 4) / 2 ))
@@ -53,7 +54,7 @@ print_info() {
 }
 
 downgrade_packages() {
-  print_info "Handling Package Downgrades"
+  print_header "Handling Package Downgrades"
   for pkg in "${PKGS_TO_DOWNGRADE[@]}"; do
     local repo_dir="${pkg%% *}"
     local pkg_version="${pkg#* }"
@@ -74,9 +75,9 @@ downgrade_packages() {
 }
 
 install_packages() {
-  print_info "Installing packages..."
+  print_header "Installing packages..."
   sudo pacman -S "${BASE_PACKAGES[@]}"
-  print_info "Installation done!"
+  print_info_line "All done, packages installed."
 }
 
 setup_dotfiles() {
@@ -96,35 +97,27 @@ setup_dotfiles() {
   chmod +x "$DOTFILES_DIR/.config/qtile/autostart.sh"
   curl -s https://ohmyposh.dev/install.sh | bash -s
   source ~/.bashrc
+  print_info_line "All done, copied dotfiles."
 }
 
-show_menu() {
-  clear
-  print_info "ARCH POST-INSTALL MENU"
-  echo "1. Install packages"
-  echo "2. Setup dotfiles"
-  echo "3. Downgrade packages"
-  echo "4. Select multiple options"
-  echo "5. Exit"
-  read -p "Enter your choice [1-5]: " choice
-  case $choice in
-    1) install_packages ;;
-    2) setup_dotfiles ;;
-    3) downgrade_packages ;;
-    4) select_multiple ;;
-    5) exit 0 ;;
-    *) echo -e "${RED}Invalid option!${RESET}" && sleep 1 ;;
-  esac
+setup_virtual_machine() {
+  print_header "Setup Virtual Machine"
+  yes | sudo pacman -S virtualbox-guest-utils
+  sudo systemctl enable vboxservice.service
+  sudo systemctl start vboxservice.service
+  sudo usermod -aG vboxsf "$USER"
+  print_info_line "All tasks completed. Virtual Machine ready."
 }
 
 select_multiple() {
   clear
-  print_info "SELECT MULTIPLE OPTIONS"
-  echo "Enter numbers separated by commas (e.g., 1,2,3)"
+  print_header "Select multiple options"
+  echo "Enter numbers separated by commas (e.g., 1,2,3,4)"
   echo "1. Install packages"
   echo "2. Setup dotfiles"
   echo "3. Downgrade packages"
-  echo "4. Return to main menu"
+  echo "4. Setup virtual machine"
+  echo "5. Return to main menu"
   read -p "Your selections: " selections
   IFS=',' read -ra options <<< "$selections"
   for option in "${options[@]}"; do
@@ -132,10 +125,32 @@ select_multiple() {
       1) install_packages ;;
       2) setup_dotfiles ;;
       3) downgrade_packages ;;
-      4) return ;;
+      4) setup_virtual_machine ;;
+      5) return ;;
       *) echo -e "${RED}Invalid option: $option${RESET}" ;;
     esac
   done
+}
+
+show_menu() {
+  clear
+  print_header "MinArI Post-Install Menu"
+  echo "1. Install packages"
+  echo "2. Setup dotfiles"
+  echo "3. Downgrade packages"
+  echo "4. Setup virtual machine"
+  echo "5. Select multiple options"
+  echo "6. Exit"
+  read -p "Enter your choice [1-6]: " choice
+  case $choice in
+    1) install_packages ;;
+    2) setup_dotfiles ;;
+    3) downgrade_packages ;;
+    3) setup_virtual_machine ;;
+    5) select_multiple ;;
+    6) exit 0 ;;
+    *) echo -e "${RED}Invalid option!${RESET}" && sleep 1 ;;
+  esac
 }
 
 main() {
@@ -143,7 +158,8 @@ main() {
     install_packages
     setup_dotfiles
     [[ "$DOWNGRADE" == "true" ]] && downgrade_packages
-    print_info "All tasks completed automatically!"
+    [[ "$VIRTUAL_MACHINE" == "true" ]] && setup_virtual_machine
+    print_info_line "All tasks completed automatically!"
     exit 0
   fi
   while true; do
