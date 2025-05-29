@@ -24,7 +24,7 @@ readonly KERNEL='linux'
 USER_NAME='guest'
 USER_PASSWORD='guest'
 SWAP_SIZE=2
-BOOT_LOADER='UEFI'  # BIOS or UEFI
+BOOT_LOADER='UEFI'
 readonly BASE_PACKAGES=( base base-devel "$KERNEL" linux-firmware )
 readonly EXTRA_PACKAGES=(
   curl git grub gvim man-db man-pages networkmanager sudo ttf-dejavu
@@ -119,20 +119,11 @@ setup_configuration() {
       read -p 'Enter your option[1-3]: ' option
       case $option in
         1)
-          read -rp 'Are you sure to continue with these settings? [Y/n]: ' confirm
-          if [[ $confirm =~ ^[Yy]?$ ]]; then
-            break
-          fi
-          ;;
-        2)
-          ask_custom_settings
-          ;;
-        3)
-          exit 0
-          ;;
-        *)
-          echo "${RED}Invalid option${RESET}, choose a number between 1-3"
-          ;;
+          read -rp 'Are you sure to continue with these settings? [Y/n]: ' sure
+          [[ $sure =~ ^[Yy]?$ ]] && break ;;
+        2) ask_custom_settings ;;
+        3) exit 0 ;;
+        *) echo "${RED}Invalid option${RESET}, choose a number between 1-3" ;;
       esac
     done
   fi
@@ -148,8 +139,6 @@ parse_args() {
         echo "  --help      Display this help and exit"
         echo "  --auto      Run automatically with preset values (no prompts)"
         echo "  --config    Force interactive configuration before installation"
-        echo "  --bios      Force BIOS mode (set BOOT_LOADER to BIOS)"
-        echo "  --uefi      Force UEFI mode (set BOOT_LOADER to UEFI)"
         exit 0
         ;;
       --auto)
@@ -158,12 +147,6 @@ parse_args() {
       --config)
         AUTO="false"
         CONFIG_FORCE="true"
-        ;;
-      --bios)
-        BOOT_LOADER="BIOS"
-        ;;
-      --uefi)
-        BOOT_LOADER="UEFI"
         ;;
       *)
         echo "Unknown option: $arg" >&2
@@ -211,7 +194,7 @@ rollback() {
   echo "Rollback done!"
 }
 
-verify_boot_mode() {
+verify_boot_loader() {
   if [ -f "/sys/firmware/efi/fw_platform_size" ]; then
     local efi_size
     efi_size=$(cat /sys/firmware/efi/fw_platform_size)
@@ -306,9 +289,7 @@ EOF
 
 pre_installation() {
   print_info "Pre-installation"
-  loadkeys "$KEYMAP"
-  timedatectl set-ntp true
-  verify_boot_mode
+  loadkeys "$KEYMAP"; timedatectl set-ntp true; verify_boot_loader
   [[ $BOOT_LOADER = "BIOS" ]] && partition_bios || partition_uefi
 }
 
@@ -316,8 +297,7 @@ installation() {
   print_info "Installing ${KERNEL} kernel, firmware and essential packages"
   echo 'Server = https://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
   reflector --latest 10 --protocol http,https --sort rate --save /etc/pacman.d/mirrorlist
-  pacman -Syyy
-  yes | pacman -Sy archlinux-keyring
+  pacman -Syyy; yes | pacman -Sy archlinux-keyring
   if [[ $BOOT_LOADER = "BIOS" ]]; then
     pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}"
   else
@@ -335,7 +315,6 @@ configure_system() {
     --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
   fi
   arch-chroot /mnt /bin/bash <<EOF
-
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 hwclock --systohc
 
@@ -364,10 +343,9 @@ EOF
 
 post_installation() {
   print_info "Post-installation"
-  read -p "Do you want to download the post-install script? [Y/n]: " \
-    download_post_install
+  read -p "Do you want to download the post-install script? [Y/n]: " post_answer
   arch-chroot /mnt /bin/bash <<EOF
-if [[ $download_post_install =~ ^[Yy]$ ]]; then
+if [[ $post_answer =~ ^[Yy]$ ]]; then
   curl -L -o /home/$USER_NAME/post-install.sh \
     https://github.com/leugimkm/minimal-arch-install/raw/dev/post-install.sh
   chmod +x /home/$USER_NAME/post-install.sh
