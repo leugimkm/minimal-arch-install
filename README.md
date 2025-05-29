@@ -1,45 +1,80 @@
 ![](assets/archlinux_logo.png)
 
-# Minimal Arch Installation
+# Minari
 
-Simply boot into a live Arch Linux ISO, download the script (using `curl`) and execute `install.sh`.
+(Min)imal (Ar)ch (I)nstallation is a simple installation script design to set up
+your system with minimal user interaction.
+
+Simply boot into a live Arch Linux ISO, download the script (using `curl`), edit
+the script if needed, and run it to install a minimal base system.
 
 Feel free to download, edit, clone, fork or open an issue.
 
----
-
 ## Usage
 
-First, get the script by entering the following command on the terminal:
+1. Download the script:
 
-```bash
-curl -LO https://github.com/leugimkm/minimal-arch-install/raw/main/install.sh
-```
+   ```sh
+   curl -LO https://github.com/leugimkm/minimal-arch-install/raw/main/install.sh
+   ```
 
-or enter this one:
+   or:
 
-```bash
-curl -LO https://raw.githubusercontent.com/leugimkm/minimal-arch-install/main/install.sh
-```
+   ```sh
+   curl -LO https://raw.githubusercontent.com/leugimkm/minimal-arch-install/main/install.sh
+   ```
 
-Then, make the downloaded script executable:
+2. Make the script executable:
 
-```bash
-chmod +x install.sh
-```
+   ```sh
+   chmod +x install.sh
+   ```
 
-And finally, run the following command (see [Configure](#configure) before):
+3. (***Optional***) Edit the configuration:
 
-```bash
-./install.sh
-```
+   The script contains defaults settings that
+   you can customize using your preferred text editor:
+
+   ```sh
+   vim install.sh
+   ```
+
+4. Run the installer:
+
+   Modify values as needed (see [Configure](#configure) section below):
+
+   ```bash
+   ./install.sh
+   ```
+
+   You may also provide additional flags (see more using `--help`):
+
+   - Automatic mode with preset configuration:
+     ```bash
+     ./install.sh --auto
+     ```
+
+   - Interactive configuration mode
+     ```bash
+     ./install.sh --config
+     ```
+
+   - Force BIOS mode
+     ```bash
+     ./install.sh --auto --bios
+     ```
+
+   - Force UEFI mode
+     ```bash
+     ./install.sh --auto --uefi
+     ```
 
 ## Configure
 
-By default the script has the following configuration:
+By default, the script is preconfigured as follows:
 
 ```sh
-readonly AUTO=False
+readonly AUTO=false
 readonly HOSTNAME='MinArI'
 readonly TIMEZONE='America/Lima'
 readonly LOCALE='en_US.UTF-8'
@@ -54,16 +89,11 @@ SWAP_SIZE=2
 BOOT_LOADER='UEFI'
 ```
 
-Before running the script, you should edit `install.sh` with `nano` or `vim`:
-
-```sh
-vim install.sh
-```
-
-and then apply changes, for example:
+Before running the script, edit `install.sh` with an editor like `nano` or `vim`
+to adjust these settings. For example:
 
 ```bash
-readonly AUTO=True
+readonly AUTO=true
 readonly HOSTNAME='ArchBox'
 readonly TIMEZONE='America/New_York'
 readonly LOCALE='es_ES.UTF-8'
@@ -81,7 +111,19 @@ readonly EXTRA_PACKAGES=(
 )
 ```
 
+## Rollback Funcionality
+
+If you cancel the installation or an error occurs, the rollback function will:
+- Disable active swap
+- Unmount all mounted partitions
+- Flush pending writes with `sync`
+- Erase residual filesystem signatures (using `wipefs`)
+- Wipe the partition table (using `sgdisk --zap-all` or `dd`)
+- Trigger the kernel to re-read the partition table via `partprobe`.
+
+This ensures that the disk is completely clean, avoiding errors before
+re-running the installation.
+
 ---
 
-For more technical details go to the official site of
-[Arch](https://archlinux.org/).
+For further technical details, check out the [official Arch Linux websie](https://archlinux.org/).
