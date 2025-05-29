@@ -23,13 +23,13 @@ DOTFILES_DIR="$HOME/dotfiles"
 PKGS_TO_DOWNGRADE=( "mesa mesa-1:25.0.5-1" "x xf86-video-vmware-13.4.0-3" )
 
 readonly BASE_PACKAGES=(
-  alsa-utils bat fzf kitty lsd nodejs noto-fonts-emoji npm nvim openssh picom
-  pipewire-jack python-pillow python-pip python-setuptools qtile qutebrowser
-  ripgrep rofi stow tk tmux ttf-sourcecodepro-nerd unzip wget xclip xorg-server
-  xorg-xinit yazi zoxide zsh
+  alsa-utils bat feh fzf kitty lsd nodejs noto-fonts-emoji npm nvim openssh
+  picom pipewire-jack python-pillow python-pip python-setuptools qtile
+  qutebrowser ripgrep rofi stow tk tmux ttf-sourcecodepro-nerd unzip wget xclip
+  xorg-server xorg-xinit yazi zoxide zsh
 )
 
-print_info_old() {
+print_info_line() {
   printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - (${#1} + 4))))
   echo "${GREEN} ${1}${RESET}"
 }
@@ -63,10 +63,7 @@ downgrade_packages() {
       echo -e "${RED}✗ Failed to downgrade ${pkg_name}${RESET}"
       exit 1
     fi
-    # if ! grep -q "IgnorePkg.*${pkg_name}" /etc/pacman.conf; then
-    #   sudo sed -i "/^IgnorePkg/ s|.*|& ${pkg_name}|" /etc/pacman.conf
-    #   echo -e "${BLUE}→ Locked ${pkg_name} in pacman.conf${RESET}"
-    # fi
+    print_info_line "All done, packages downgraded."
   done
 }
 
@@ -80,9 +77,6 @@ setup_dotfiles() {
   if [[ ! -d "$DOTFILES_DIR" ]]; then
     git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
   fi
-}
-
-copy_config() {
   mkdir -p "$HOME/projects"
   mkdir -p "$HOME/.config"
   files_to_copy=("pictures" ".vim" ".bash_profile" ".bashrc" ".zshrc" ".xinitrc" ".vimrc")
@@ -91,18 +85,16 @@ copy_config() {
   done
   source ~/.bashrc
   print_info "Copied files!"
-
   cp -r "$DOTFILES_DIR/.config/." "$HOME/.config/"
   print_info "'.config' directory synced!"
-
   chmod +x "$DOTFILES_DIR/.config/qtile/autostart.sh"
   curl -s https://ohmyposh.dev/install.sh | bash -s
+  source ~/.bashrc
 }
 
 main() {
   install_packages
   setup_dotfiles
-  copy_config
   [[ $DOWNGRADE == "true" ]] && downgrade_packages
 }
 
