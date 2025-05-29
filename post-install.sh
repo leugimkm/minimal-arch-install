@@ -1,10 +1,30 @@
 #! /bin/bash
+#
 # Minimal Arch Linux Post-Installation
 #
 # Repository:
 # https://github.com/leugimkm/minimal-arch-install
 
-###############################################################################
+################################################################################
+#                                CONFIGURATION                                 #
+################################################################################
+
+# Modify these variables before running the script (e.g.: vim install.sh).
+INTERACTIVE=true
+DOWNGRADE=true
+readonly DOTFILES_REPO="https://github.com/leugimkm/dotfiles"
+readonly DOTFILES_DIR="$HOME/dotfiles"
+readonly PKGS_TO_DOWNGRADE=(
+  "mesa mesa-1:25.0.5-1"
+  "x xf86-video-vmware-13.4.0-3"
+)
+readonly BASE_PACKAGES=(
+  alsa-utils bat feh fzf kitty lsd nodejs noto-fonts-emoji npm nvim openssh
+  picom pipewire-jack python-pillow python-pip python-setuptools qtile
+  qutebrowser ripgrep rofi stow tk tmux ttf-sourcecodepro-nerd unzip wget xclip
+  xorg-server xorg-xinit yazi zoxide zsh
+)
+################################################################################
 
 readonly BLACK=$(tput setaf 0)
 readonly RED=$(tput setaf 1)
@@ -16,19 +36,6 @@ readonly CYAN=$(tput setaf 6)
 readonly WHITE=$(tput setaf 7)
 readonly RESET=$'\e[0m'
 readonly COLS=$(tput cols)
-
-INTERACTIVE="false"
-DOWNGRADE="true"
-DOTFILES_REPO="https://github.com/leugimkm/dotfiles"
-DOTFILES_DIR="$HOME/dotfiles"
-PKGS_TO_DOWNGRADE=( "mesa mesa-1:25.0.5-1" "x xf86-video-vmware-13.4.0-3" )
-
-readonly BASE_PACKAGES=(
-  alsa-utils bat feh fzf kitty lsd nodejs noto-fonts-emoji npm nvim openssh
-  picom pipewire-jack python-pillow python-pip python-setuptools qtile
-  qutebrowser ripgrep rofi stow tk tmux ttf-sourcecodepro-nerd unzip wget xclip
-  xorg-server xorg-xinit yazi zoxide zsh
-)
 
 print_info_line() {
   printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - (${#1} + 4))))
@@ -53,12 +60,10 @@ downgrade_packages() {
     local pkg_name="${pkg_version%-*}"
     local base_url="https://archive.archlinux.org/packages"
     local pkg_url="${base_url}/${repo_dir:0:1}/${repo_dir}/${pkg_version}-x86_64.pkg.tar.zst"
-
     if pacman -Qi "$pkg_name" &>/dev/null | grep -q "$pkg_version"; then
       echo -e "${GREEN}✓ ${pkg_name}@${pkg_version} already installed${RESET}"
       continue
     fi
-
     echo -e "${YELLOW}▶ Downgrading ${pkg_name} to ${pkg_version}${RESET}"
     if ! sudo pacman -U --noconfirm --needed "$pkg_url"; then
       echo -e "${RED}✗ Failed to downgrade ${pkg_name}${RESET}"
@@ -101,7 +106,6 @@ show_menu() {
   echo "3. Downgrade packages"
   echo "4. Select multiple options"
   echo "5. Exit"
-
   read -p "Enter your choice [1-5]: " choice
   case $choice in
     1) install_packages ;;
@@ -121,10 +125,8 @@ select_multiple() {
   echo "2. Setup dotfiles"
   echo "3. Downgrade packages"
   echo "4. Return to main menu"
-
   read -p "Your selections: " selections
   IFS=',' read -ra options <<< "$selections"
-
   for option in "${options[@]}"; do
     case $option in
       1) install_packages ;;

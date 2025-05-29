@@ -306,14 +306,12 @@ installation() {
 configure_system() {
   print_info "Configuring the system"
   genfstab -U -p /mnt >> /mnt/etc/fstab
-
   if [[ $BOOT_LOADER = "BIOS" ]]; then
     grub_install_CMD="grub-install --target=i386-pc $DISK"
   else
     grub_install_CMD="grub-install \
     --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
   fi
-
   arch-chroot /mnt /bin/bash <<EOF
 
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
@@ -365,12 +363,10 @@ main() {
   fi
   setup_configuration
   print_info "${CYAN}MIN${RESET}imal ${CYAN}AR${RESET}ch ${CYAN}I${RESET}nstaller"
-
   pre_installation
   installation
   configure_system
   post_installation
-
   umount -l /mnt
   print_info "Installation has completed. Please reboot!"
 }
