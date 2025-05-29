@@ -32,6 +32,7 @@ readonly BASE_PACKAGES=(
   nvim
   openssh
   picom
+  pipewire-jack
   python-pillow
   python-pip
   python-setuptools
@@ -52,6 +53,32 @@ readonly BASE_PACKAGES=(
   zoxide
   zsh
 )
+
+downgrade_packages() {
+  print_section "Handling Package Downgrades"
+  for pkg in "${PKGS_TO_DOWNGRADE[@]}"; do
+    local repo_dir="${pkg%% *}"
+    local pkg_version="${pkg#* }"
+    local pkg_name="${pkg_version%-*}"
+    local base_url="https://archive.archlinux.org/packages"
+    local pkg_url="${base_url}/${repo_dir:0:1}/${repo_dir}/${pkg_version}-x86_64.pkg.tar.zst"
+
+    if pacman -Qi "$pkg_name" &> /dev/null | grep -q "$pkg_version"; then
+      echo -e "${GREEN}✓ ${pkg_name}@${pkg_version} already installed${RESET}"
+      continue
+    fi
+
+    echo -e "${YELLOW}▶ Downgrading ${pkg_name} to ${pkg_version}${RESET}"
+    if ! sudo pacman -U --noconfirm --needed "$pkg_url"; then
+      echo -e "${RED}✗ Failed to downgrade ${pkg_name}${RESET}"
+      exit 1
+    fi
+    # if ! grep -q "IgnorePkg.*${pkg_name}" /etc/pacman.conf; then
+    #   sudo sed -i "/^IgnorePkg/ s|.*|& ${pkg_name}|" /etc/pacman.conf
+    #   echo -e "${BLUE}→ Locked ${pkg_name} in pacman.conf${RESET}"
+    # fi
+  done
+}
 
 print_info() {
   printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - (${#1} + 4))))
