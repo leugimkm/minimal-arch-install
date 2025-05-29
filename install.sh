@@ -29,6 +29,7 @@ readonly BASE_PACKAGES=( base base-devel "$KERNEL" linux-firmware )
 readonly EXTRA_PACKAGES=(
   curl git grub gvim man-db man-pages networkmanager sudo ttf-dejavu
 )
+################################################################################
 
 readonly BLACK=$(tput setaf 0)
 readonly RED=$(tput setaf 1)
@@ -101,6 +102,75 @@ ask_custom_settings() {
     read -rp "Enter your option [1-2]: " user_option
     BOOT_LOADER=$([[ $user_option == "2" ]] && echo "UEFI" || echo "BIOS")
   fi
+}
+
+setup_configuration() {
+  ascii_header
+  print_info "Configuration"
+  if [[ $AUTO == "true" ]]; then
+    echo "${GREEN}Automatic mode enabled. Using preset values.${RESET}"
+  else
+    while true; do
+      show_settings
+      echo -e "\nChoose an option:"
+      echo -e "\t1. ${CYAN}Continue${RESET} with these settings"
+      echo -e "\t2. ${CYAN}Modify${RESET} the settings"
+      echo -e "\t3. ${CYAN}Exit${RESET}"
+      read -p 'Enter your option[1-3]: ' option
+      case $option in
+        1)
+          read -rp 'Are you sure to continue with these settings? [Y/n]: ' confirm
+          if [[ $confirm =~ ^[Yy]?$ ]]; then
+            break
+          fi
+          ;;
+        2)
+          ask_custom_settings
+          ;;
+        3)
+          exit 0
+          ;;
+        *)
+          echo "${RED}Invalid option${RESET}, choose a number between 1-3"
+          ;;
+      esac
+    done
+  fi
+}
+
+parse_args() {
+  for arg in "$@"; do
+    case "$arg" in
+      --help)
+        echo "Usage: $0 [OPTION]"
+        echo ""
+        echo "Options:"
+        echo "  --help      Display this help and exit"
+        echo "  --auto      Run automatically with preset values (no prompts)"
+        echo "  --config    Force interactive configuration before installation"
+        echo "  --bios      Force BIOS mode (set BOOT_LOADER to BIOS)"
+        echo "  --uefi      Force UEFI mode (set BOOT_LOADER to UEFI)"
+        exit 0
+        ;;
+      --auto)
+        AUTO="true"
+        ;;
+      --config)
+        AUTO="false"
+        CONFIG_FORCE="true"
+        ;;
+      --bios)
+        BOOT_LOADER="BIOS"
+        ;;
+      --uefi)
+        BOOT_LOADER="UEFI"
+        ;;
+      *)
+        echo "Unknown option: $arg" >&2
+        exit 1
+        ;;
+    esac
+  done
 }
 
 rollback() {
@@ -212,110 +282,39 @@ EOF
   mount --mkdir "${DISK}1" /mnt/efi
   swapon "${DISK}2"
 }
-for arg in "$@"; do
-  case "$arg" in
-    --help)
-      echo "Usage: $0 [OPTION]"
-      echo ""
-      echo "Options:"
-      echo "  --help      Display this help and exit"
-      echo "  --auto      Run automatically with preset values (no prompts)"
-      echo "  --config    Force interactive configuration before installation"
-      echo "  --bios      Force BIOS mode (set BOOT_LOADER to BIOS)"
-      echo "  --uefi      Force UEFI mode (set BOOT_LOADER to UEFI)"
-      exit 0
-      ;;
-    --auto)
-      AUTO="true"
-      ;;
-    --config)
-      AUTO="false"
-      CONFIG_FORCE="true"
-      ;;
-    --bios)
-      BOOT_LOADER="BIOS"
-      ;;
-    --uefi)
-      BOOT_LOADER="UEFI"
-      ;;
-    *)
-      echo "Unknown option: $arg" >&2
-      exit 1
-      ;;
-  esac
-done
 
-if [[ "${AUTO}" == "true" && "${CONFIG_FORCE:-false}" == "true" ]]; then
-  echo "Cannot use --auto and --config simultaneously." >&2
-  exit 1
-fi
-# ------------------------------------------------------------------------ Start
-setup_configuration() {
-  ascii_header
-  print_info "Configuration"
-  if [[ $AUTO == "true" ]]; then
-    echo "${GREEN}Automatic mode enabled. Using preset values.${RESET}"
+pre_installation() {
+  print_info "Pre-installation"
+  loadkeys "$KEYMAP"
+  timedatectl set-ntp true
+  [[ $BOOT_LOADER = "BIOS" ]] && partition_bios || partition_uefi
+}
+
+installation() {
+  print_info "Installing ${KERNEL} kernel, firmware and essential packages"
+  echo 'Server = https://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
+  reflector --latest 10 --protocol http,https --sort rate --save /etc/pacman.d/mirrorlist
+  pacman -Syyy
+  yes | pacman -Sy archlinux-keyring
+  if [[ $BOOT_LOADER = "BIOS" ]]; then
+    pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}"
   else
-    while true; do
-      show_settings
-      echo -e "\nChoose an option:"
-      echo -e "\t1. ${CYAN}Continue${RESET} with these settings"
-      echo -e "\t2. ${CYAN}Modify${RESET} the settings"
-      echo -e "\t3. ${CYAN}Exit${RESET}"
-      read -p 'Enter your option[1-3]: ' option
-      case $option in
-        1)
-          read -rp 'Are you sure to continue with these settings? [Y/n]: ' confirm
-          if [[ $confirm =~ ^[Yy]?$ ]]; then
-            break
-          fi
-          ;;
-        2)
-          ask_custom_settings
-          ;;
-        3)
-          exit 0
-          ;;
-        *)
-          echo "${RED}Invalid option${RESET}, choose a number between 1-3"
-          ;;
-      esac
-    done
+    pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}" efibootmgr
   fi
 }
 
-# ------------------------------------------------------------- Pre-Installation
-print_info "Starting '${GREEN}MIN${RESET}imal ${GREEN}AR${RESET}ch ${GREEN}I${RESET}nstaller'"
-loadkeys "$KEYMAP"
-timedatectl set-ntp true
-[[ $BOOT_LOADER = "BIOS" ]] && partition_bios || partition_uefi
+configure_system() {
+  print_info "Configuring the system"
+  genfstab -U -p /mnt >> /mnt/etc/fstab
 
-# ----------------------------------------------------------------- Installation
-print_info "Installing ${KERNEL} kernel, firmware and essential packages"
-echo 'Server = https://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
-yes | pacman -Sy reflector
-reflector --latest 10 --protocol http,https --sort rate --save /etc/pacman.d/mirrorlist
-pacman -Syyy
-yes | pacman -Sy archlinux-keyring
+  if [[ $BOOT_LOADER = "BIOS" ]]; then
+    grub_install_CMD="grub-install --target=i386-pc $DISK"
+  else
+    grub_install_CMD="grub-install \
+    --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
+  fi
 
-if [[ $BOOT_LOADER = "BIOS" ]]; then
-  pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}"
-else
-  pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}" efibootmgr
-fi
-
-# --------------------------------------------------------- Configure the system
-print_info "Configuring the system"
-genfstab -U -p /mnt >> /mnt/etc/fstab
-
-if [[ $BOOT_LOADER = "BIOS" ]]; then
-  grub_install_CMD="grub-install --target=i386-pc $DISK"
-else
-  grub_install_CMD="grub-install \
-  --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
-fi
-
-arch-chroot /mnt /bin/bash <<EOF
+  arch-chroot /mnt /bin/bash <<EOF
 
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 hwclock --systohc
@@ -341,12 +340,13 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 systemctl enable NetworkManager
 EOF
+}
 
-# ------------------------------------------------- Post-installation (optional)
-print_info "Post-installation"
-read -p "Do you want to download the post-install script? [Y/n]: " \
-  download_post_install
-arch-chroot /mnt /bin/bash <<EOF
+post_installation() {
+  print_info "Post-installation"
+  read -p "Do you want to download the post-install script? [Y/n]: " \
+    download_post_install
+  arch-chroot /mnt /bin/bash <<EOF
 if [[ $download_post_install =~ ^[Yy]$ ]]; then
     curl -L -o /home/$USER_NAME/post-install.sh \
         https://github.com/leugimkm/minimal-arch-install/raw/dev/post-install.sh
@@ -354,7 +354,24 @@ if [[ $download_post_install =~ ^[Yy]$ ]]; then
     chown $USER_NAME:$USER_NAME /home/$USER_NAME/post-install.sh
 fi
 EOF
-# ------------------------------------------------------------------------------
+}
 
-umount -l /mnt
-print_info "Installation has completed. Please reboot!"
+main() {
+  parse_args "$@"
+  if [[ "${AUTO}" == "true" && "${CONFIG_FORCE:-false}" == "true" ]]; then
+    echo "Cannot use --auto and --config simultaneously." >&2
+    exit 1
+  fi
+  setup_configuration
+  print_info "${CYAN}MIN${RESET}imal ${CYAN}AR${RESET}ch ${CYAN}I${RESET}nstaller"
+
+  pre_installation
+  installation
+  configure_system
+  post_installation
+
+  umount -l /mnt
+  print_info "Installation has completed. Please reboot!"
+}
+
+main "$@"
