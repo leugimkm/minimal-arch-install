@@ -19,7 +19,6 @@ readonly LOCALE='en_US.UTF-8'
 readonly KEYMAP='us'
 readonly ROOT_PASSWORD='root'
 readonly DISK='/dev/sda'
-readonly RESOLUTION='1920x1080'
 readonly KERNEL='linux'
 USER_NAME='guest'
 USER_PASSWORD='guest'
@@ -309,8 +308,10 @@ configure_system() {
   print_info "Configuring the system"
   genfstab -U -p /mnt >> /mnt/etc/fstab
   if [[ $BOOT_LOADER = "BIOS" ]]; then
+    RESOLUTION=1280x1024x32
     grub_install_CMD="grub-install --target=i386-pc $DISK"
   else
+    RESOLUTION=1920x1080x32
     grub_install_CMD="grub-install \
     --target=x86_64-efi --efi-directory=/efi/ --bootloader-id=GRUB --recheck"
   fi
@@ -318,7 +319,7 @@ configure_system() {
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 hwclock --systohc
 
-sed -i 's/#${LOCALE}/${LOCALE}/' /etc/locale.gen
+sed -i "s/#${LOCALE}/${LOCALE}/" /etc/locale.gen
 echo "LANG=${LOCALE}" >> /etc/locale.conf
 locale-gen
 echo KEYMAP=$KEYMAP > /etc/vconsole.conf
@@ -333,7 +334,7 @@ usermod -aG audio,video,optical,storage $USER_NAME
 echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_NAME
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
-sed -i 's/^#GRUB_GFXMODE=.*/GRUB_GFXMODE=${RESOLUTION}/' /etc/default/grub
+sed -i "s/GRUB_GFXMODE=auto/GRUB_GFXMODE=${RESOLUTION}/" /etc/default/grub
 $grub_install_CMD
 grub-mkconfig -o /boot/grub/grub.cfg
 
