@@ -17,45 +17,35 @@ readonly WHITE=$(tput setaf 7)
 readonly RESET=$'\e[0m'
 readonly COLS=$(tput cols)
 
+DOWNGRADE="true"
 DOTFILES_REPO="https://github.com/leugimkm/dotfiles"
 DOTFILES_DIR="$HOME/dotfiles"
+PKGS_TO_DOWNGRADE=( "mesa mesa-1:25.0.5-1" "x xf86-video-vmware-13.4.0-3" )
 
 readonly BASE_PACKAGES=(
-  alsa-utils
-  bat
-  fzf
-  kitty
-  lsd
-  nodejs
-  noto-fonts-emoji
-  npm
-  nvim
-  openssh
-  picom
-  pipewire-jack
-  python-pillow
-  python-pip
-  python-setuptools
-  qtile
-  qutebrowser
-  ripgrep
-  rofi
-  stow
-  tk
-  tmux
-  ttf-sourcecodepro-nerd
-  unzip
-  wget
-  xclip
-  xorg-server
-  xorg-xinit
-  yazi
-  zoxide
-  zsh
+  alsa-utils bat fzf kitty lsd nodejs noto-fonts-emoji npm nvim openssh picom
+  pipewire-jack python-pillow python-pip python-setuptools qtile qutebrowser
+  ripgrep rofi stow tk tmux ttf-sourcecodepro-nerd unzip wget xclip xorg-server
+  xorg-xinit yazi zoxide zsh
 )
 
+print_info_old() {
+  printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - (${#1} + 4))))
+  echo "${GREEN} ${1}${RESET}"
+}
+
+print_info() {
+  local title="$1"
+  local line_length=${COLS:-80}
+  local padding=$(( (line_length - ${#title} - 4) / 2 ))
+  printf -- "${WHITE}=%.0s" $(seq 0 "$padding")
+  printf "${GREEN} %s ${RESET}" "$title"
+  printf -- "${WHITE}=%.0s" $(seq 0 "$padding")
+  printf "\n"
+}
+
 downgrade_packages() {
-  print_section "Handling Package Downgrades"
+  print_info "Handling Package Downgrades"
   for pkg in "${PKGS_TO_DOWNGRADE[@]}"; do
     local repo_dir="${pkg%% *}"
     local pkg_version="${pkg#* }"
@@ -63,7 +53,7 @@ downgrade_packages() {
     local base_url="https://archive.archlinux.org/packages"
     local pkg_url="${base_url}/${repo_dir:0:1}/${repo_dir}/${pkg_version}-x86_64.pkg.tar.zst"
 
-    if pacman -Qi "$pkg_name" &> /dev/null | grep -q "$pkg_version"; then
+    if pacman -Qi "$pkg_name" &>/dev/null | grep -q "$pkg_version"; then
       echo -e "${GREEN}✓ ${pkg_name}@${pkg_version} already installed${RESET}"
       continue
     fi
@@ -78,11 +68,6 @@ downgrade_packages() {
     #   echo -e "${BLUE}→ Locked ${pkg_name} in pacman.conf${RESET}"
     # fi
   done
-}
-
-print_info() {
-  printf -- "${WHITE}=%.0s" $(seq 0 $(($COLS - (${#1} + 4))))
-  echo "${GREEN} ${1}${RESET}"
 }
 
 install_packages() {
@@ -118,6 +103,7 @@ main() {
   install_packages
   setup_dotfiles
   copy_config
+  [[ $DOWNGRADE == "true" ]] && downgrade_packages
 }
 
 main "$@"
