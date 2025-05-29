@@ -214,6 +214,17 @@ EOF
 }
 for arg in "$@"; do
   case "$arg" in
+    --help)
+      echo "Usage: $0 [OPTION]"
+      echo ""
+      echo "Options:"
+      echo "  --help      Display this help and exit"
+      echo "  --auto      Run automatically with preset values (no prompts)"
+      echo "  --config    Force interactive configuration before installation"
+      echo "  --bios      Force BIOS mode (set BOOT_LOADER to BIOS)"
+      echo "  --uefi      Force UEFI mode (set BOOT_LOADER to UEFI)"
+      exit 0
+      ;;
     --auto)
       AUTO="true"
       ;;
@@ -239,38 +250,39 @@ if [[ "${AUTO}" == "true" && "${CONFIG_FORCE:-false}" == "true" ]]; then
   exit 1
 fi
 # ------------------------------------------------------------------------ Start
-ascii_header
-print_info "Configuration"
-
-if [[ $AUTO == "true" ]]; then
-  echo "${GREEN}Automatic mode enabled. Using preset values.${RESET}"
-else
-  while true; do
-    show_settings
-    echo -e "\nChoose an option:"
-    echo -e "\t1. ${CYAN}Continue${RESET} with these settings"
-    echo -e "\t2. ${CYAN}Modify${RESET} the settings"
-    echo -e "\t3. ${CYAN}Exit${RESET}"
-    read -p 'Enter your option[1-3]: ' option
-    case $option in
-      1)
-        read -rp 'Are you sure to continue with these settings? [Y/n]: ' confirm
-        if [[ $confirm =~ ^[Yy]?$ ]]; then
-          break
-        fi
-        ;;
-      2)
-        ask_custom_settings
-        ;;
-      3)
-        exit 0
-        ;;
-      *)
-        echo "${RED}Invalid option${RESET}, choose a number between 1-3"
-        ;;
-    esac
-  done
-fi
+setup_configuration() {
+  ascii_header
+  print_info "Configuration"
+  if [[ $AUTO == "true" ]]; then
+    echo "${GREEN}Automatic mode enabled. Using preset values.${RESET}"
+  else
+    while true; do
+      show_settings
+      echo -e "\nChoose an option:"
+      echo -e "\t1. ${CYAN}Continue${RESET} with these settings"
+      echo -e "\t2. ${CYAN}Modify${RESET} the settings"
+      echo -e "\t3. ${CYAN}Exit${RESET}"
+      read -p 'Enter your option[1-3]: ' option
+      case $option in
+        1)
+          read -rp 'Are you sure to continue with these settings? [Y/n]: ' confirm
+          if [[ $confirm =~ ^[Yy]?$ ]]; then
+            break
+          fi
+          ;;
+        2)
+          ask_custom_settings
+          ;;
+        3)
+          exit 0
+          ;;
+        *)
+          echo "${RED}Invalid option${RESET}, choose a number between 1-3"
+          ;;
+      esac
+    done
+  fi
+}
 
 # ------------------------------------------------------------- Pre-Installation
 print_info "Starting '${GREEN}MIN${RESET}imal ${GREEN}AR${RESET}ch ${GREEN}I${RESET}nstaller'"
