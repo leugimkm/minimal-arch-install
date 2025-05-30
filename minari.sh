@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Minimal Arch Linux Installation
+# (Min)imal (Ar)ch Linux (I)nstallation
 #
 # Repository:
 # https://github.com/leugimkm/minimal-arch-install
@@ -335,6 +335,8 @@ echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_NAME
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
 sed -i "s/GRUB_GFXMODE=auto/GRUB_GFXMODE=${RESOLUTION}/" /etc/default/grub
+sed -i "s/#GRUB_COLOR_NORMAL=/GRUB_COLOR_NORMAL=/" /etc/default/grub
+sed -i "s/#GRUB_COLOR_HIGHLIGHT/GRUB_COLOR_HIGHLIGHT/" /etc/default/grub
 $grub_install_CMD
 grub-mkconfig -o /boot/grub/grub.cfg
 
@@ -342,15 +344,15 @@ systemctl enable NetworkManager
 EOF
 }
 
-post_installation() {
-  print_info "Post-installation"
-  read -p "Do you want to download the post-install script? [Y/n]: " post_answer
+additional() {
+  print_info "Additional script"
+  read -p "Do you want to download the additional script? [Y/n]: " post_answer
   arch-chroot /mnt /bin/bash <<EOF
 if [[ $post_answer =~ ^[Yy]$ ]]; then
-  curl -L -o /home/$USER_NAME/post-install.sh \
-    https://github.com/leugimkm/minimal-arch-install/raw/dev/post-install.sh
-  chmod +x /home/$USER_NAME/post-install.sh
-  chown $USER_NAME:$USER_NAME /home/$USER_NAME/post-install.sh
+  curl -L -o /home/$USER_NAME/minaru.sh \
+    https://github.com/leugimkm/minimal-arch-install/raw/dev/minaru.sh
+  chmod +x /home/$USER_NAME/minaru.sh
+  chown $USER_NAME:$USER_NAME /home/$USER_NAME/minaru.sh
 fi
 EOF
 }
@@ -363,7 +365,7 @@ main() {
   pre_installation
   installation
   configure_system
-  post_installation
+  additional
   umount -R /mnt
   print_info "Installation has completed. Please reboot!"
 }

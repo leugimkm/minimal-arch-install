@@ -1,9 +1,9 @@
 #! /bin/bash
 #
-# Minimal Arch Linux Post-Installation
+# (Min)imal (Ar)ch Linux (U)tilities
 #
 # Repository:
-# https://github.com/leugimkm/minimal-arch-install
+# https://github.com/leugimkm/minaru
 
 ################################################################################
 #                                CONFIGURATION                                 #
@@ -134,7 +134,7 @@ select_multiple() {
 
 show_menu() {
   clear
-  print_header "MinArI Utilities Menu"
+  print_header "MinArU"
   echo "1. Install packages"
   echo "2. Setup dotfiles"
   echo "3. Downgrade packages"
