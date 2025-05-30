@@ -84,7 +84,6 @@ setup_dotfiles() {
   if [[ ! -d "$DOTFILES_DIR" ]]; then
     git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
   fi
-  mkdir -p "$HOME/projects"
   mkdir -p "$HOME/.config"
   files_to_copy=("pictures" ".vim" ".bash_profile" ".bashrc" ".zshrc" ".xinitrc" ".vimrc")
   for file in "${files_to_copy[@]}"; do
@@ -119,7 +118,8 @@ select_multiple() {
   echo "4. Setup virtual machine"
   echo "5. Return to main menu"
   read -p "Your selections: " selections
-  IFS=',' read -ra options <<< "$selections"
+  local clean_selections=$(echo "$selections" | tr -d '[:space:]')
+  IFS=',' read -ra options <<< "$clean_selections"
   for option in "${options[@]}"; do
     case $option in
       1) install_packages ;;
@@ -134,7 +134,7 @@ select_multiple() {
 
 show_menu() {
   clear
-  print_header "MinArI Post-Install Menu"
+  print_header "MinArI Utilities Menu"
   echo "1. Install packages"
   echo "2. Setup dotfiles"
   echo "3. Downgrade packages"
