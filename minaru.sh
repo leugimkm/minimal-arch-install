@@ -146,7 +146,7 @@ show_menu() {
     1) install_packages ;;
     2) setup_dotfiles ;;
     3) downgrade_packages ;;
-    3) setup_virtual_machine ;;
+    4) setup_virtual_machine ;;
     5) select_multiple ;;
     6) exit 0 ;;
     *) echo -e "${RED}Invalid option!${RESET}" && sleep 1 ;;
