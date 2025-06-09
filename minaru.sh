@@ -20,11 +20,20 @@ readonly PKGS_TO_DOWNGRADE=(
   "x xf86-video-vmware-13.4.0-3"
 )
 readonly BASE_PACKAGES=(
-  alsa-utils bat feh fzf kitty lsd nodejs noto-fonts-emoji npm nvim openssh
-  picom pipewire-jack python-pillow python-pip python-setuptools qtile
-  qutebrowser ripgrep rofi stow tk tmux ttf-sourcecodepro-nerd unzip wget xclip
-  xorg-server xorg-xinit yazi zoxide zsh
+  alsa-utils pipewire-jack ttf-sourcecodepro-nerd noto-fonts-emoji
+  zsh zoxide openssh bat lsd tmux fzf ripgrep unzip wget xclip yazi stow
+  nvim npm nodejs python-pillow python-pip python-setuptools tk
+  qutebrowser
 )
+readonly WM_QTILE=(
+    qtile xorg-server xorg-xinit picom feh rofi
+    kitty
+)
+readonly WM_NIRI=(
+    xdg-desktop-portal-gtk niri fuzzel otf-font-awesome swaybg waybar
+    ghostty
+)
+
 ################################################################################
 
 readonly BLACK=$(tput setaf 0)
@@ -80,6 +89,27 @@ install_packages() {
   print_info_line "All done, packages installed."
 }
 
+install_window_manager() {
+  print_header "Instalando Gestor de Ventanas"
+  echo -e "${CYAN}Seleccione el WM a instalar:${RESET}"
+  echo "1. Qtile"
+  echo "2. Niri"
+  read -p "Elige tu opción [1-2]: " wm_choice
+  case $wm_choice in
+    1)
+      sudo pacman -S "${WM_QTILE[@]}"
+      print_info_line "Qtile y sus dependencias han sido instalados."
+      ;;
+    2)
+      sudo pacman -S "${WM_NIRI[@]}"
+      print_info_line "Niri y sus dependencias han sido instalados."
+      ;;
+    *)
+      echo -e "${RED}Opción inválida: $wm_choice${RESET}"
+      ;;
+  esac
+}
+
 setup_dotfiles() {
   if [[ ! -d "$DOTFILES_DIR" ]]; then
     git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
@@ -90,9 +120,9 @@ setup_dotfiles() {
     cp -r "$DOTFILES_DIR/$file" "$HOME/"
   done
   source ~/.bashrc
-  print_info "Copied files!"
+  print_info_line "Copied files!"
   cp -r "$DOTFILES_DIR/.config/." "$HOME/.config/"
-  print_info "'.config' directory synced!"
+  print_info_line "'.config' directory synced!"
   chmod +x "$DOTFILES_DIR/.config/qtile/autostart.sh"
   curl -s https://ohmyposh.dev/install.sh | bash -s
   source ~/.bashrc
@@ -112,21 +142,23 @@ select_multiple() {
   clear
   print_header "Select multiple options"
   echo "Enter numbers separated by commas (e.g., 1,2,3,4)"
-  echo "1. Install packages"
-  echo "2. Setup dotfiles"
-  echo "3. Downgrade packages"
-  echo "4. Setup virtual machine"
-  echo "5. Return to main menu"
+  echo "1. Install base packages"
+  echo "2. Install window manager"
+  echo "3. Setup dotfiles"
+  echo "4. Downgrade packages"
+  echo "5. Setup virtual machine"
+  echo "6. Return to main menu"
   read -p "Your selections: " selections
   local clean_selections=$(echo "$selections" | tr -d '[:space:]')
   IFS=',' read -ra options <<< "$clean_selections"
   for option in "${options[@]}"; do
     case $option in
       1) install_packages ;;
-      2) setup_dotfiles ;;
-      3) downgrade_packages ;;
-      4) setup_virtual_machine ;;
-      5) return ;;
+      2) install_window_manager;;
+      3) setup_dotfiles ;;
+      4) downgrade_packages ;;
+      5) setup_virtual_machine ;;
+      6) return ;;
       *) echo -e "${RED}Invalid option: $option${RESET}" ;;
     esac
   done
@@ -135,20 +167,22 @@ select_multiple() {
 show_menu() {
   clear
   print_header "MinArU"
-  echo "1. Install packages"
-  echo "2. Setup dotfiles"
-  echo "3. Downgrade packages"
-  echo "4. Setup virtual machine"
-  echo "5. Select multiple options"
-  echo "6. Exit"
-  read -p "Enter your choice [1-6]: " choice
+  echo "1. Install base packages"
+  echo "2. Install window manager"
+  echo "3. Setup dotfiles"
+  echo "4. Downgrade packages"
+  echo "5. Setup virtual machine"
+  echo "6. Select multiple options"
+  echo "7. Exit"
+  read -p "Enter your choice [1-7]: " choice
   case $choice in
     1) install_packages ;;
-    2) setup_dotfiles ;;
-    3) downgrade_packages ;;
-    4) setup_virtual_machine ;;
-    5) select_multiple ;;
-    6) exit 0 ;;
+    2) install_window_manager;;
+    3) setup_dotfiles ;;
+    4) downgrade_packages ;;
+    5) setup_virtual_machine ;;
+    6) select_multiple ;;
+    7) exit 0 ;;
     *) echo -e "${RED}Invalid option!${RESET}" && sleep 1 ;;
   esac
 }
