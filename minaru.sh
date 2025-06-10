@@ -22,18 +22,14 @@ readonly PKGS_TO_DOWNGRADE=(
 readonly BASE_PACKAGES=(
   alsa-utils pipewire-jack ttf-sourcecodepro-nerd noto-fonts-emoji
   zsh zoxide openssh bat lsd tmux fzf ripgrep unzip wget xclip yazi stow
-  nvim npm nodejs python-pillow python-pip python-setuptools tk
-  qutebrowser
+  nvim npm nodejs python-pillow python-pip python-setuptools tk qutebrowser
 )
 readonly WM_QTILE=(
-    qtile xorg-server xorg-xinit picom feh rofi
-    kitty
+    qtile xorg-server xorg-xinit picom feh rofi kitty
 )
 readonly WM_NIRI=(
-    xdg-desktop-portal-gtk niri fuzzel otf-font-awesome swaybg waybar
-    ghostty
+    xdg-desktop-portal-gtk niri fuzzel otf-font-awesome waybar swww ghostty
 )
-
 ################################################################################
 
 readonly BLACK=$(tput setaf 0)
@@ -90,22 +86,22 @@ install_packages() {
 }
 
 install_window_manager() {
-  print_header "Instalando Gestor de Ventanas"
-  echo -e "${CYAN}Seleccione el WM a instalar:${RESET}"
+  print_header "Window Manager Setup"
+  echo -e "${CYAN}Select a Window Manager:${RESET}"
   echo "1. Qtile"
   echo "2. Niri"
-  read -p "Elige tu opción [1-2]: " wm_choice
+  read -p "Enter your choice [1-2]: " wm_choice
   case $wm_choice in
     1)
       sudo pacman -S "${WM_QTILE[@]}"
-      print_info_line "Qtile y sus dependencias han sido instalados."
+      print_info_line "Qtile has been installed."
       ;;
     2)
       sudo pacman -S "${WM_NIRI[@]}"
-      print_info_line "Niri y sus dependencias han sido instalados."
+      print_info_line "Niri has been installed."
       ;;
     *)
-      echo -e "${RED}Opción inválida: $wm_choice${RESET}"
+      echo -e "${RED}Invalid option: $wm_choice${RESET}"
       ;;
   esac
 }
