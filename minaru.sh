@@ -111,7 +111,10 @@ setup_dotfiles() {
     git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
   fi
   mkdir -p "$HOME/.config"
-  files_to_copy=("pictures" ".vim" ".bash_profile" ".bashrc" ".zshrc" ".xinitrc" ".vimrc")
+  files_to_copy=(
+    "pictures" "scripts" ".vim" ".bash_profile" ".bashrc" ".zshrc" ".vimrc"
+    ".xinitrc" ".wezterm.lua" "vimux.sh"
+  )
   for file in "${files_to_copy[@]}"; do
     cp -r "$DOTFILES_DIR/$file" "$HOME/"
   done
@@ -120,6 +123,8 @@ setup_dotfiles() {
   cp -r "$DOTFILES_DIR/.config/." "$HOME/.config/"
   print_info_line "'.config' directory synced!"
   chmod +x "$DOTFILES_DIR/.config/qtile/autostart.sh"
+  chmod +x ~/scripts/swww_random_wallpaper.sh
+  chmod +x ~/vimux.sh
   curl -s https://ohmyposh.dev/install.sh | bash -s
   source ~/.bashrc
   print_info_line "All done, copied dotfiles."

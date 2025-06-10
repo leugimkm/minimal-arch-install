@@ -13,13 +13,13 @@
 # Set AUTO to true for automatic mode using preset values.
 # Add more packages as needed in EXTRA_PACKAGES.
 AUTO=false
-readonly HOSTNAME='MinArI'
 readonly TIMEZONE='America/Lima'
 readonly LOCALE='en_US.UTF-8'
 readonly KEYMAP='us'
 readonly ROOT_PASSWORD='root'
 readonly DISK='/dev/sda'
 readonly KERNEL='linux'
+HOSTNAME='MinArI'
 USER_NAME='guest'
 USER_PASSWORD='guest'
 SWAP_SIZE=2
@@ -83,6 +83,7 @@ show_settings() {
 ask_custom_settings() {
   read -rp "Do you want to customize the installation settings? [Y/n]: " answer
   [[ $answer =~ ^[Yy]$ ]] || return
+  read -p "Enter your ${YELLOW}hostname${RESET} (default is $HOSTNAME): " HOSTNAME
   read -p "Enter your ${YELLOW}username${RESET}: " USER_NAME
   while true; do
     read -rsp "Enter your ${YELLOW}password${RESET}: " pwd1; echo
