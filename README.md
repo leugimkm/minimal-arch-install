@@ -75,7 +75,6 @@ By default, the script is preconfigured as follows:
 
 ```sh
 readonly AUTO=false
-readonly HOSTNAME='MinArI'
 readonly TIMEZONE='America/Lima'
 readonly LOCALE='en_US.UTF-8'
 readonly KEYMAP='us'
@@ -83,6 +82,7 @@ readonly ROOT_PASSWORD='root'
 readonly DISK='/dev/sda'
 readonly RESOLUTION='1920x1080'
 readonly KERNEL='linux'
+HOSTNAME='MinArI'
 USER_NAME='guest'
 USER_PASSWORD='guest'
 SWAP_SIZE=2
@@ -94,7 +94,6 @@ to adjust these settings. For example:
 
 ```bash
 readonly AUTO=true
-readonly HOSTNAME='ArchBox'
 readonly TIMEZONE='America/New_York'
 readonly LOCALE='es_ES.UTF-8'
 readonly KEYMAP='es'
@@ -102,6 +101,7 @@ readonly ROOT_PASSWORD='superstrongpassword'
 readonly DISK='/dev/nvme0n1'
 readonly RESOLUTION='2560x1440'
 readonly KERNEL='linux-lts'
+HOSTNAME='ArchBox'
 USER_NAME='archlover'
 USER_PASSWORD='iusearchbtw'
 SWAP_SIZE=4
