@@ -331,7 +331,7 @@ echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /etc/hosts
 echo -en "$ROOT_PASSWORD\n$ROOT_PASSWORD" | passwd
 
 useradd -m -G wheel -s /bin/bash $USER_NAME
-usermod -aG audio,video,optical,storage $USER_NAME
+usermod -aG audio,video,optical,storage,disk,input $USER_NAME
 echo -en "$USER_PASSWORD\n$USER_PASSWORD" | passwd $USER_NAME
 echo "%wheel ALL=(ALL) ALL" | EDITOR="tee -a" visudo
 
