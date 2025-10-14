@@ -15,19 +15,19 @@ Feel free to download, edit, clone, fork or open an issue.
 1. Download the script:
 
    ```sh
-   curl -LO https://github.com/leugimkm/minimal-arch-install/raw/main/install.sh
+   curl -LO https://github.com/leugimkm/minimal-arch-install/raw/dev/minari.sh
    ```
 
    or:
 
    ```sh
-   curl -LO https://raw.githubusercontent.com/leugimkm/minimal-arch-install/main/install.sh
+   curl -LO https://raw.githubusercontent.com/leugimkm/minimal-arch-install/dev/minari.sh
    ```
 
 2. Make the script executable:
 
    ```sh
-   chmod +x install.sh
+   chmod +x minari.sh
    ```
 
 3. (***Optional***) Edit the configuration:
@@ -36,7 +36,7 @@ Feel free to download, edit, clone, fork or open an issue.
    you can customize using your preferred text editor:
 
    ```sh
-   vim install.sh
+   vim minari.sh
    ```
 
 4. Run the installer:
@@ -44,29 +44,29 @@ Feel free to download, edit, clone, fork or open an issue.
    Modify values as needed (see [Configure](#configure) section below):
 
    ```bash
-   ./install.sh
+   ./minari.sh
    ```
 
    You may also provide additional flags (see more using `--help`):
 
    - Automatic mode with preset configuration:
      ```bash
-     ./install.sh --auto
+     ./minari.sh --auto
      ```
 
    - Interactive configuration mode
      ```bash
-     ./install.sh --config
+     ./minari.sh --config
      ```
 
    - Force BIOS mode
      ```bash
-     ./install.sh --auto --bios
+     ./minari.sh --auto --bios
      ```
 
    - Force UEFI mode
      ```bash
-     ./install.sh --auto --uefi
+     ./minari.sh --auto --uefi
      ```
 
 ## Configure
@@ -89,7 +89,7 @@ SWAP_SIZE=2
 BOOT_LOADER='UEFI'
 ```
 
-Before running the script, edit `install.sh` with an editor like `nano` or `vim`
+Before running the script, edit `minari.sh` with an editor like `nano` or `vim`
 to adjust these settings. For example:
 
 ```bash
