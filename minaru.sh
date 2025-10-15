@@ -21,14 +21,15 @@ readonly PKGS_TO_DOWNGRADE=(
 )
 readonly BASE_PACKAGES=(
   alsa-utils pipewire-jack ttf-sourcecodepro-nerd noto-fonts-emoji
-  zsh zoxide openssh bat lsd tmux fzf ripgrep unzip wget xclip yazi stow
-  nvim npm nodejs python-pillow python-pip python-setuptools tk qutebrowser
+  zsh zoxide openssh bat lsd tmux fzf ripgrep unzip wget yazi stow
+  nvim npm nodejs python-pillow python-pip python-setuptools tk
 )
 readonly WM_QTILE=(
-    qtile xorg-server xorg-xinit picom feh rofi kitty
+    qtile xorg-server xorg-xinit picom feh rofi kitty dunst xclip qutebrowser
 )
 readonly WM_NIRI=(
-    xdg-desktop-portal-gtk niri fuzzel otf-font-awesome waybar swww ghostty
+    xdg-desktop-portal-gtk niri fuzzel otf-font-awesome waybar swww ghostty wl-clipboard
+    firefox
 )
 ################################################################################
 
@@ -112,8 +113,8 @@ setup_dotfiles() {
   fi
   mkdir -p "$HOME/.config"
   files_to_copy=(
-    "pictures" "scripts" ".vim" ".bash_profile" ".bashrc" ".zshrc" ".vimrc"
-    ".xinitrc" ".wezterm.lua" "vimux.sh"
+    ".vim" "pictures" "scripts" ".bash_profile" ".bashrc" ".vimrc"
+    ".wezterm.lua" ".xinitrc" ".zshrc"
   )
   for file in "${files_to_copy[@]}"; do
     cp -r "$DOTFILES_DIR/$file" "$HOME/"
