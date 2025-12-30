@@ -39,7 +39,7 @@ readonly MAGENTA=$(tput setaf 5)
 readonly CYAN=$(tput setaf 6)
 readonly WHITE=$(tput setaf 7)
 readonly RESET=$'\e[0m'
-readonly COLS=$(tput cols)
+readonly COLS=$(tput cols 2>dev/null || echo 80)
 
 ascii_header() {
   echo
@@ -200,13 +200,13 @@ verify_boot_loader() {
     efi_size=$(cat /sys/firmware/efi/fw_platform_size)
     echo -e "${GREEN}System is booted in UEFI mode (${efi_size}-bit).${RESET}"
     if [ "$BOOT_LOADER" != "UEFI" ]; then
-      echo - e "Adjusting boot loader to ${YELLOW}UEFI.${RESET}"
+      echo -e "Adjusting boot loader to ${YELLOW}UEFI.${RESET}"
       BOOT_LOADER="UEFI"
     fi
   else
     echo -e "${GREEN}System is booted in BIOS (or CSM) mode.${RESET}"
     if [ "$BOOT_LOADER" != "BIOS" ]; then
-      echo - e "Adjusting boot loader to ${YELLOW}BIOS.${RESET}"
+      echo -e "Adjusting boot loader to ${YELLOW}BIOS.${RESET}"
       BOOT_LOADER="BIOS"
     fi
   fi
@@ -296,8 +296,8 @@ pre_installation() {
 installation() {
   print_info "Installing ${KERNEL} kernel, firmware and essential packages"
   echo 'Server = https://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
+  pacman -Sy --noconfirm reflector archlinux-keyring
   reflector --latest 10 --protocol http,https --sort rate --save /etc/pacman.d/mirrorlist
-  pacman -Syyy; yes | pacman -Sy archlinux-keyring
   if [[ $BOOT_LOADER = "BIOS" ]]; then
     pacstrap -K /mnt "${BASE_PACKAGES[@]}" "${EXTRA_PACKAGES[@]}"
   else
