@@ -61,11 +61,11 @@ print_header() {
 
 downgrade_packages() {
   print_header "Handling Package Downgrades"
+  local base_url="https://archive.archlinux.org/packages"
   for pkg in "${PKGS_TO_DOWNGRADE[@]}"; do
     local repo_dir="${pkg%% *}"
     local pkg_version="${pkg#* }"
     local pkg_name="${pkg_version%-*}"
-    local base_url="https://archive.archlinux.org/packages"
     local pkg_url="${base_url}/${repo_dir:0:1}/${repo_dir}/${pkg_version}-x86_64.pkg.tar.zst"
     if pacman -Qi "$pkg_name" &>/dev/null | grep -q "$pkg_version"; then
       echo -e "${GREEN}✓ ${pkg_name}@${pkg_version} already installed${RESET}"
@@ -82,7 +82,9 @@ downgrade_packages() {
 
 install_packages() {
   print_header "Installing packages..."
-  sudo pacman -S "${BASE_PACKAGES[@]}"
+  sudo pacman -S --noconfirm --needed "${BASE_PACKAGES[@]}" || {
+    echo -e "${RED}✗ pacman failed${RESET}"; exit 1;
+  }
   print_info_line "All done, packages installed."
 }
 
@@ -94,11 +96,15 @@ install_window_manager() {
   read -p "Enter your choice [1-2]: " wm_choice
   case $wm_choice in
     1)
-      sudo pacman -S "${WM_QTILE[@]}"
+      sudo pacman -Sy --noconfirm --needed "${WM_QTILE[@]}" || {
+        echo -e "${RED}✗ Failed${RESET}"; return 1;
+      }
       print_info_line "Qtile has been installed."
       ;;
     2)
-      sudo pacman -S "${WM_NIRI[@]}"
+      sudo pacman -Sy --noconfirm --needed "${WM_NIRI[@]}" || {
+        echo -e "${RED}✗ Failed${RESET}"; return 1;
+      }
       print_info_line "Niri has been installed."
       ;;
     *)
